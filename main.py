@@ -1,11 +1,10 @@
 
-
-
 import pygame
 
 import scripts.pygpen as pp
-from scripts.settings import Settings
-from scripts.transition import Transition
+from scripts.default.settings import Settings
+from scripts.default.transition import Transition
+from scripts.food.food import Food, FoodTypes
 
 class Game(pp.PygpenGame):
     def load(self):
@@ -16,7 +15,6 @@ class Game(pp.PygpenGame):
         pygame.init()
         
         self.settings = Settings()
-
 
         pp.init(
             self.settings.resolution,
@@ -33,7 +31,8 @@ class Game(pp.PygpenGame):
         self.hud_surf = self.display.copy()
         
         self.e['Assets'].load_folder('data/images/misc', colorkey=(0, 0, 0), alpha=True)
-
+        self.e['Assets'].load_folder('data/images/food', colorkey=(0, 0, 0), alpha=True)
+        
         self.e['Renderer'].set_groups(['default', 'ui'])
 
         self.mpos = (0, 0)
@@ -52,10 +51,18 @@ class Game(pp.PygpenGame):
         self.camera = pp.Camera(base_resolution, slowness=0.2)
 
         #self.e['Sounds'].play('ambience', times=-1, volume=self.e['Settings'].sfx_volume * 0.6)
+        
+        self.restart()
 
     def restart(self):
-        pass
-    
+        self.e['EntityDB'].load('data/images/food')
+        self.spawn_food(FoodTypes.BRAIN, (200, 150))
+        self.spawn_food(FoodTypes.HEART, (100, 150))
+
+    def spawn_food(self, food_type: FoodTypes, pos):
+        food = Food(food_type=food_type, pos=pos, z=10)
+        self.e['EntityGroups'].add(food, group='food')
+        return food
     
     def update(self):
         self.hud_surf.fill((0, 0, 0, 0))
@@ -71,7 +78,10 @@ class Game(pp.PygpenGame):
         self.e['Window'].dt = min(self.e['Window'].dt * dt_scale, 0.1)
         
         if self.e['Input'].pressed('fullscreen'):
-            self.settings.fullscreen
+            if self.settings.fullscreen:
+                self.settings.update('fullscreen', 'disabled')
+            else:
+                self.settings.update('fullscreen', 'enabled')
             
         window_aspect = self.e['Window'].dimensions[0] / self.e['Window'].dimensions[1]
         intended_aspect = 16 / 9

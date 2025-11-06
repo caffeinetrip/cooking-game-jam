@@ -7,7 +7,7 @@ import pygame
 
 from scripts import pygpen as pp
 
-from scripts.const import DEFAULT_SAVE, SETTINGS
+from scripts.default.const import DEFAULT_SAVE, SETTINGS
 
 DEFAULT_SETTINGS = {
     'fps_cap': '165',
@@ -20,6 +20,7 @@ DEFAULT_SETTINGS = {
     'saturation': '100%',
     'screenshake': 'enabled',
     'crt_effect': '100%',
+    'language': 'russian'
 }
 
 class Settings(pp.ElementSingleton):
@@ -100,6 +101,10 @@ class Settings(pp.ElementSingleton):
             return tuple(int(v) for v in self.settings_save['windowed_resolution'].split('x'))
         except ValueError:
             return None
+    
+    @property
+    def language(self):
+        return self.settings_save['language']
     
     def update(self, field, value, save=True):
         self.settings_save[field] = value

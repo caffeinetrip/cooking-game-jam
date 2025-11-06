@@ -8,7 +8,7 @@ from scripts import pygpen as pp
 from const import DEFAULT_SAVE
 
 EFFECTS = {
-
+    'todo': 0
 }
             
 class State(pp.ElementSingleton):
@@ -20,7 +20,7 @@ class State(pp.ElementSingleton):
     
     def save(self):
         save_data = {
-
+            'todo': 0
         }
         pp.utils.io.write_json('save/save.json', save_data)
 

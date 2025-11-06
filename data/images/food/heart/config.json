@@ -1,0 +1,1 @@
+{"images": {"heart": {"offset": [0, 0]}}, "animations": {}, "file_path": "data/images/food/heart", "id": "heart", "centered": false, "offset": [0, 0], "colorkey": [0, 0, 0], "size": [1, 1], "group": "entity", "collide_with": [], "default": "heart"}

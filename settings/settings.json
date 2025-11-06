@@ -1,1 +1,1 @@
-{"fps_cap": "165", "master_volume": "100%", "sfx_volume": "100%", "music_volume": "100%", "fullscreen": "disabled", "aim_assist": "100%", "windowed_resolution": "1152x648", "show_fps": "enabled", "saturation": "100%", "screenshake": "enabled", "crt_effect": "100%"}
+{"fps_cap": "60", "master_volume": "100%", "sfx_volume": "100%", "music_volume": "100%", "fullscreen": "disabled", "windowed_resolution": "1152x648", "show_fps": "disabled", "saturation": "100%", "screenshake": "disabled", "crt_effect": "0%", "language": "russian"}
