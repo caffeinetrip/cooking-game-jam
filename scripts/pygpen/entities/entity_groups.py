@@ -17,16 +17,30 @@ class EntityGroups(ElementSingleton):
         self.quad_groups = set(quad_groups)
         
     def add(self, entity, group):
-        if self.locked:
-            self.add_queue.append((entity, group))
+        
+        if isinstance(entity, list):
+            for i in entity:
+                if self.locked:
+                    self.add_queue.append((i, group))
+                else:
+                    # two insert cases depending on whether the group is spatially partitioned
+                    if group in self.quad_groups:
+                        self.equads.insert(i, egroup=group)
+                    else:
+                        if group not in self.groups:
+                            self.groups[group] = []
+                        self.groups[group].append(i)
         else:
-            # two insert cases depending on whether the group is spatially partitioned
-            if group in self.quad_groups:
-                self.equads.insert(entity, egroup=group)
+            if self.locked:
+                self.add_queue.append((entity, group))
             else:
-                if group not in self.groups:
-                    self.groups[group] = []
-                self.groups[group].append(entity)
+                # two insert cases depending on whether the group is spatially partitioned
+                if group in self.quad_groups:
+                    self.equads.insert(entity, egroup=group)
+                else:
+                    if group not in self.groups:
+                        self.groups[group] = []
+                    self.groups[group].append(entity)
     
     def update(self, group=None, unlock=True, quad_rect=pygame.Rect(0, 0, 100, 100)):
         dt = self.e['Window'].dt

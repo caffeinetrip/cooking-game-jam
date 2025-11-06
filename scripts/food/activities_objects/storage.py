@@ -1,10 +1,10 @@
 
 from scripts import pygpen as pp
-from scripts.food.activities import Activities
+from scripts.food.activities import Activities, ActivitiesTypes
 
-class Storage(pp.Element):
-    def __init__(self, custom_id=None, singleton=False, register=False):
-        super().__init__(custom_id, singleton, register)
+class Storage(pp.Entity):
+    def __init__(self):
+        super().__init__(type=ActivitiesTypes.STORAGE.value, pos=(5,120), z=1)
         
         self.activities = Activities()
 

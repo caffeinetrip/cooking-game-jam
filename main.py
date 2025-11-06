@@ -5,6 +5,7 @@ import scripts.pygpen as pp
 from scripts.default.settings import Settings
 from scripts.default.transition import Transition
 from scripts.food.food import Food, FoodTypes
+from scripts.food.activities_objects import *
 
 class Game(pp.PygpenGame):
     def load(self):
@@ -32,6 +33,7 @@ class Game(pp.PygpenGame):
         
         self.e['Assets'].load_folder('data/images/misc', colorkey=(0, 0, 0), alpha=True)
         self.e['Assets'].load_folder('data/images/food', colorkey=(0, 0, 0), alpha=True)
+        self.e['Assets'].load_folder('data/images/activities', colorkey=(0, 0, 0), alpha=True)
         
         self.e['Renderer'].set_groups(['default', 'ui'])
 
@@ -56,9 +58,23 @@ class Game(pp.PygpenGame):
 
     def restart(self):
         self.e['EntityDB'].load('data/images/food')
+        self.e['EntityDB'].load('data/images/activities')
+        
         self.spawn_food(FoodTypes.BRAIN, (200, 150))
         self.spawn_food(FoodTypes.HEART, (100, 150))
+        
+        self.load_activities()
 
+    def load_activities(self):
+        self.storage = Storage()
+        self.grill = Grill()
+        self.slime = Slime()
+        self.desk = Desk()
+        self.plate_place = PlatePlace()
+        self.plates = Plates()
+        
+        self.e['EntityGroups'].add([self.storage, self.slime, self.grill, self.desk, self.plate_place, self.plates], group='activities')
+    
     def spawn_food(self, food_type: FoodTypes, pos):
         food = Food(food_type=food_type, pos=pos, z=10)
         self.e['EntityGroups'].add(food, group='food')

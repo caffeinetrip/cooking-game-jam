@@ -3,7 +3,7 @@ import random
 
 import pygame
 
-import pygpen as pp
+import scripts.pygpen as pp
 
 from slash import Slash
 

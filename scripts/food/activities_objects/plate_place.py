@@ -1,10 +1,10 @@
 
 from scripts import pygpen as pp
-from scripts.food.activities import Activities
+from scripts.food.activities import Activities, ActivitiesTypes
 
-class PlatePlace(pp.Element):
-    def __init__(self, custom_id=None, singleton=False, register=False):
-        super().__init__(custom_id, singleton, register)
+class PlatePlace(pp.Entity):
+    def __init__(self):
+        super().__init__(type=ActivitiesTypes.PLATE_PLACE.value, pos=(265, 160), z=1)
         
         self.activities = Activities()
 
