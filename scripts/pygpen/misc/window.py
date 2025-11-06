@@ -89,7 +89,16 @@ class Window(ElementSingleton):
             self.dimensions = (pygame.display.Info().current_w, pygame.display.Info().current_h)
         else:
             self.dimensions = tuple(size)
-    
+
+    def draw_debug_rect(self, rect, color=(255, 0, 0), width=1):
+        scaled_rect = pygame.Rect(
+            rect.x * self.e['Game'].display.get_width() / 384,
+            rect.y * self.e['Game'].display.get_height() / 216,
+            rect.width * self.e['Game'].display.get_width() / 384,
+            rect.height * self.e['Game'].display.get_height() / 216
+        )
+        pygame.draw.rect(self.e['Game'].display, color, scaled_rect)    
+
     def cycle(self, uniforms={}):
         if self.render_object:
             if self.render_object.default and ('surface' not in uniforms):

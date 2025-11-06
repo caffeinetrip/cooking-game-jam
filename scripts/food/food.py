@@ -1,4 +1,3 @@
-
 import random
 from enum import Enum
 from scripts import pygpen as pp
@@ -14,6 +13,10 @@ class Food(pp.Entity):
         super().__init__(type=food_type.value, pos=pos, z=z)
         self.food_type = food_type
         self.base_dmg = 5
+        self.taken = False
+        self.in_holder = False
+        self.on_holder = False
+        self.original_z = z
 
     def damage(self):
         dmg = self.base_dmg
