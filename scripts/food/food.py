@@ -7,12 +7,13 @@ class FoodTypes(Enum):
     MEAT = 'meat'
     EYE = 'eye'
     BRAIN = 'brain'
+    PLATE = 'plate'
 
 class Food(pp.Entity):
-    def __init__(self, food_type: FoodTypes, pos, z=0, custom_id=None):
+    def __init__(self, food_type: FoodTypes, pos, base_dmg=5, z=0, custom_id=None):
         super().__init__(type=food_type.value, pos=pos, z=z)
         self.food_type = food_type
-        self.base_dmg = 5
+        self.base_dmg = base_dmg
         self.taken = False
         self.in_holder = False
         self.on_holder = False

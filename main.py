@@ -102,12 +102,12 @@ class Game(pp.PygpenGame):
 
         self.camera.update()
 
-        for act in self.slime.slots + self.grill.slots + self.desk.slots + self.plate_place.slots:
+        for act in self.storage.slots + self.slime.slots + self.grill.slots + self.desk.slots + self.plate_place.slots:
             act.update(self.mpos)
 
         self.e['EntityGroups'].renderz(offset=self.camera)
         
-        for act in self.slime.slots + self.grill.slots + self.desk.slots + self.plate_place.slots:
+        for act in self.storage.slots + self.slime.slots + self.grill.slots + self.desk.slots + self.plate_place.slots:
             if act.held and act.item:
                 act.item.pos = [self.mpos[0]-8, self.mpos[1]-8]
                 act.item.render(self.display, offset=self.camera)

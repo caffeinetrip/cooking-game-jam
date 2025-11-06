@@ -1,6 +1,7 @@
 import pygame
 from enum import Enum
 from scripts import pygpen as pp
+from scripts.food.food import FoodTypes, Food
 
 class ActivitiesTypes(Enum):
     STORAGE = 'storage'
@@ -16,8 +17,10 @@ class Holder(pp.Element):
         self.pos = pos
         self.size = size
         self.activity_type = activity_type
+        
         self.item = None
         self.held = False
+        
         self.last_holder = None
         self.original_pos = None
 
@@ -28,6 +31,11 @@ class Holder(pp.Element):
     def get_item(self, item):
         if self.item:
             return False
+        
+        if self.activity_type == ActivitiesTypes.PLATE_PLACE:
+            if item.food_type != FoodTypes.PLATE:
+                return False
+        
         self.item = item
         if item:
             item.pos = [self.pos[0] - item.size[0]//2 + 2.5,
@@ -65,19 +73,27 @@ class Holder(pp.Element):
         for acts in [self.e['Game'].desk.slots, self.e['Game'].grill.slots,
                     self.e['Game'].plate_place.slots, self.e['Game'].slime.slots]:
             for slot in acts:
-                if slot.rect.collidepoint(mpos):
+                
+                if slot.activity_type == ActivitiesTypes.PLATE_PLACE and self.item.type != FoodTypes.PLATE.value:
+                    pass
+                
+                elif slot.rect.collidepoint(mpos):
                     if not slot.item:
                         target = slot
                         break
-        if target:
-            target.get_item(self.give_item())
-            self.last_holder = target
-            
-        else:
+
+        if not target:
             self.get_item(self.give_item())
             self.last_holder = self
 
+        else:
+            target.get_item(self.give_item())
+            self.last_holder = target
+
     def update(self, mpos):
+        
+        
+        self.e['Window'].draw_debug_rect(self.rect)
         
         if not self.rect.collidepoint(mpos):
 
@@ -91,3 +107,58 @@ class Holder(pp.Element):
 
         elif self.held and not self.e['Input'].holding('left_click'):
             self.drop_item(mpos)
+
+class Generator(Holder):
+    def __init__(self, activity_type, size, pos, food_type):
+        super().__init__(activity_type, size, pos)
+        self.food_type = food_type
+        
+        self.item = True
+
+    def get_item(self, item):
+        return False
+
+    def give_item(self):
+        food = Food(food_type=self.food_type, pos=self.pos, z=10)
+        self.e['EntityGroups'].add(food, group='food')
+        return food
+
+    def pickup_item(self):
+
+        if self.held:
+            return
+        self.held = True
+        self.original_pos = self.pos
+        self.last_holder = self
+        item = self.give_item()
+        item.taken = True
+        item.z = 100
+        self.item = item
+
+
+    def drop_item(self, mpos):
+        if not self.held:
+            return
+
+        self.held = False
+        
+        target = None
+        for acts in [self.e['Game'].desk.slots, self.e['Game'].grill.slots,
+                    self.e['Game'].plate_place.slots, self.e['Game'].slime.slots]:
+            for slot in acts:
+                
+                if slot.activity_type == ActivitiesTypes.PLATE_PLACE and self.item.type != FoodTypes.PLATE.value:
+                    pass
+                
+                elif slot.rect.collidepoint(mpos):
+                    if not slot.item:
+                        target = slot
+                        break
+
+        if target:
+            self.e['EntityGroups'].groups['food'].pop()
+            target.get_item(self.give_item())
+            self.last_holder = target
+            
+        else:
+            self.e['EntityGroups'].groups['food'].pop()
