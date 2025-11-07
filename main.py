@@ -6,6 +6,7 @@ from scripts.default.state import State
 from scripts.food.food import Food, FoodTypes
 from scripts.food.activities_objects import *
 from scripts.npc.npc import NPC, NPCPlacement
+from scripts.default.hud import HUD
 class Game(pp.PygpenGame):
     def load(self):
         base_resolution = (384, 216)
@@ -29,6 +30,7 @@ class Game(pp.PygpenGame):
         self.display = pygame.Surface(base_resolution, pygame.SRCALPHA)
         
         self.hud_surf = self.display.copy()
+        self.hud = HUD()
         
         self.state = State()
         self.npc_placemant = NPCPlacement()
@@ -105,6 +107,8 @@ class Game(pp.PygpenGame):
         self.camera.update()
         self.state.update(self.e['Window'].dt)
         self.npc_placemant.update(self.e['Window'].dt, self.hud_surf)
+        
+        self.hud.render(self.hud_surf)
         
         self.plate_place.update()
         self.bar_couter.update()

@@ -47,7 +47,6 @@ class Grill(pp.Entity):
                             
                             food.reset(new_type.value, temp_data[0], temp_data[1])
                             food.food_type = new_type
-                            print(1)
                                 
                             slot.fry_timer = 0.0
                 else:

@@ -8,6 +8,7 @@ class NPCsTypes(Enum):
     MADBEAR = 'madbear'
     MADDOVE = 'maddove'
     MADELEPHANT = 'madelephant'
+    
 class OrderDisplay(pp.Entity):
     def __init__(self, food_type: FoodTypes, pos, z=100):
         super().__init__(type=food_type.value, pos=pos, z=z)
@@ -18,26 +19,34 @@ class NPC(pp.Entity):
         super().__init__(type=npc_type, pos=pos, z=z)
         
         self.type = npc_type
-        self.health = 10
+        self.health = 15
         
         self.order = order
         
-        if random.random() < complexity * 0.1:
-            self.health += 10
+        if random.randint(1,10) == 5:
+            self.health += 5
             
         self.timer = 10.0
         self.pos = pos
         self.alive = True
         self.order_display = None
+        
+        self.killed = False
 
     def take_dmg(self, dmg):
         self.health -= dmg
         if self.health <= 0:
             self.timer = -1
+            self.killed = True
+            self.e['State'].points +=1
 
     def update(self, dt):
         self.timer -= dt
         if self.timer <= 0:
+            
+            if not self.killed:
+                self.e['State'].health -= 1
+            
             self.alive = False
 
 class NPCPlacement(pp.ElementSingleton):
@@ -54,14 +63,18 @@ class NPCPlacement(pp.ElementSingleton):
         self.spawn_timer = 0.0
         self.kill_streak = 0
         
-        self.base_spawn_delay = 6.0
-        self.spawn_delay_time = 6.0
+        self.base_spawn_delay = 10.0
+        self.spawn_delay_time = 10.0
         
         self.order_icon = None
+        
+        self.health_hud = pygame.image.load('data/images/hud/madheart.png')
 
     def load_assets(self):
         try:
             self.order_icon = pygame.image.load('data/images/activities/hud/order.png').convert_alpha()
+            
+            
         except:
             self.order_icon = None
 
@@ -127,13 +140,11 @@ class NPCPlacement(pp.ElementSingleton):
             return self.npcs[pos].timer < 2
         return False
         
-    def ping(self, pos):
-        print(f'pong {pos}')
-        
     def draw_timer(self, surface):
         for i in range(self.SLOTS):
             npc = self.npcs[i]
             if npc and npc.alive and npc.timer > 0:
+                
                 center = (int(self.POS[i][0] + 34), int(self.POS[i][1]))
                 radius = 5
                 progress = max(0, npc.timer / 10.0)
@@ -145,6 +156,11 @@ class NPCPlacement(pp.ElementSingleton):
                     pygame.draw.arc(surface, (200, 200, 200), 
                                     (center[0] - radius, center[1] - radius, radius*2, radius*2),
                                     start_angle, start_angle + angle, 3)
+                
+                for j in range(npc.health//5):
+                    pos = (int(self.POS[i][0] + 37), int(self.POS[i][1])+10 + (j * 8))
+                    
+                    surface.blit(self.health_hud, pos)
                     
     def update(self, dt, surf):
         self.spawn_timer -= dt

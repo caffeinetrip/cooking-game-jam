@@ -57,6 +57,7 @@ class Food(pp.Entity):
     def on_eat(self, eater):
         if self.food_type != FoodTypes.PLATE:
             damage = self.damage()
+            if eater.order == self.food_type: damage *= 2
             eater.take_dmg(damage)
         self.kill()
         

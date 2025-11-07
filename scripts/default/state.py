@@ -19,18 +19,19 @@ class State(pp.ElementSingleton):
         self.playable = True
         
         self.kill_streak = 0
-        self.health = 100
+        self.health = 7
         
         self.round_end = 100
         self.time = 0
-        self.week = 1
+        self.week = 1   
         
-        self.money = 0
+        self.points = 0
 
     def save(self):
         save_data = {
             'todo': 0
         }
+        
         pp.utils.io.write_json('save/save.json', save_data)
 
     def reset_save(self):
@@ -43,11 +44,10 @@ class State(pp.ElementSingleton):
     def update(self, dt):
         
         if self.playable:
-            
-            
+        
             if self.round_end <= self.time:
                 self.week += 1
                 self.time = 0
-            
+        
             else:
                 self.time += dt
