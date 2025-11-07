@@ -1,7 +1,5 @@
 import sys
-
 import pygame
-
 from ..utils.elements import ElementSingleton, Element
 from ..utils.gfx import palette_swap, clip
 from ..utils.io import recursive_file_op
@@ -51,6 +49,16 @@ class Text(ElementSingleton):
             doubled_font = Font(self.fonts[font].path, double_outline=(38, 27, 46))
             self.fonts[f'{font}_double'] = doubled_font
             self.fonts[font].double_link = doubled_font
+    
+    def add_ttf(self, name, path, size=16):
+        """Добавить TTF шрифт
+        Args:
+            name: имя для доступа к шрифту
+            path: путь к .ttf файлу
+            size: размер шрифта
+        """
+        self.fonts[name] = TTFFont(path, size)
+        return self.fonts[name]
         
     def __getitem__(self, key):
         return self.fonts[key]
@@ -63,7 +71,6 @@ class PreppedText:
         self.height = size[1]
         self.size = size
 
-    # maybe add caching?
     def render(self, surf, loc):
         self.font.render(self.text, surf, loc)
 
@@ -72,6 +79,91 @@ class PreppedText:
 
     def __str__(self):
         return ('<PreppedText:' + str(self.width) + 'x' + str(self.height) + '> ' + self.text).replace('\n', '\\n')
+
+class TTFFont(Element):
+    """TTF шрифт с тем же интерфейсом что и пиксельный Font"""
+    def __init__(self, path, size=16, color=(255, 255, 255)):
+        super().__init__()
+        self.path = path
+        self.size = size
+        self.base_color = color
+        self.font = pygame.font.Font(path, size)
+        self.line_height = self.font.get_height()
+        self.line_spacing = 2
+        self.double_link = None
+        
+    def width(self, text):
+        """Возвращает ширину текста в пикселях"""
+        return self.font.size(text)[0]
+    
+    def prep_text(self, text, line_width=0):
+        """Подготовить текст с переносом строк"""
+        if not line_width:
+            size = self.font.size(text)
+            return PreppedText(text, size, self)
+        
+        # Разбивка текста по словам
+        words = []
+        for line in text.split('\n'):
+            words.extend([(w + ' ', self.font.size(w + ' ')[0]) for w in line.split()])
+            words.append(('\n', 0))
+        
+        x = 0
+        y = 0
+        processed_text = ''
+        max_width = 0
+        
+        for word, word_width in words:
+            if word == '\n':
+                y += 1
+                x = 0
+                processed_text += '\n'
+            else:
+                if x + word_width > line_width and x > 0:
+                    processed_text += '\n'
+                    x = word_width
+                    y += 1
+                else:
+                    x += word_width
+                processed_text += word
+                max_width = max(max_width, x)
+        
+        height = self.line_height * (y + 1) + self.line_spacing * y
+        return PreppedText(processed_text.rstrip(), (max_width, height), self)
+    
+    def renderz(self, text, loc, line_width=0, color=None, offset=(0, 0), group='default', z=0):
+        """Рендер с z-индексом"""
+        self.render(self.e['Renderer'], text, (loc[0] - offset[0], loc[1] - offset[1]), 
+                   line_width=line_width, color=color, blit_kwargs={'group': group, 'z': z})
+    
+    def renderzb(self, text, loc, line_width=0, color=None, bgcolor=(0, 0, 0), offset=(0, 0), group='default', z=0):
+        """Рендер с обводкой"""
+        if not color:
+            color = self.base_color
+        # Рендерим обводку
+        for o in [(1, 0), (-1, 0), (0, 1), (0, -1), (1, 1), (-1, 1), (1, -1), (-1, -1)]:
+            self.renderz(text, (loc[0] + o[0], loc[1] + o[1]), line_width=line_width, 
+                        color=bgcolor, offset=offset, group=group, z=z - 1)
+        # Рендерим основной текст
+        self.renderz(text, loc, line_width=line_width, color=color, offset=offset, group=group, z=z)
+    
+    def render(self, surf, text, loc, line_width=0, color=None, blit_kwargs={}):
+        """Основной рендер"""
+        if not color:
+            color = self.base_color
+        
+        # Обработка переноса строк
+        if line_width > 0:
+            prepped = self.prep_text(text, line_width)
+            text = prepped.text
+        
+        # Рендер построчно
+        y_offset = 0
+        for line in text.split('\n'):
+            if line:  # Пропускаем пустые строки
+                text_surf = self.font.render(line, True, color)
+                surf.blit(text_surf, (loc[0], loc[1] + y_offset), **blit_kwargs)
+            y_offset += self.line_height + self.line_spacing
 
 class Font(Element):
     def __init__(self, path, color=(255, 255, 255), double_outline=None):
