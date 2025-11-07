@@ -10,6 +10,7 @@ class ActivitiesTypes(Enum):
     PLATE_PLACE = 'plate_place'
     SLIME = 'slime'
     PLATES = 'plates'
+    BAR_COUTER = 'bar_couter'
 
 class Holder(pp.Element):
     def __init__(self, activity_type, size, pos, custom_id=None, singleton=False, register=False):
@@ -40,7 +41,8 @@ class Holder(pp.Element):
         return len(self.item) > 0
 
     def get_item(self, new_item):
-        if self.activity_type == ActivitiesTypes.PLATE_PLACE:
+    
+        if self.activity_type == ActivitiesTypes.PLATE_PLACE or self.activity_type == ActivitiesTypes.BAR_COUTER:
             if new_item.food_type != FoodTypes.PLATE:
                 return False
             if len(self.item) > 0:
@@ -62,7 +64,7 @@ class Holder(pp.Element):
         return True
 
     def get_food_on_plate(self, food):
-        if self.activity_type != ActivitiesTypes.PLATE_PLACE:
+        if self.activity_type != ActivitiesTypes.PLATE_PLACE and self.activity_type != ActivitiesTypes.BAR_COUTER:
             return False
         if len(self.item) == 0 or self.item[0].food_type != FoodTypes.PLATE:
             return False
@@ -81,6 +83,7 @@ class Holder(pp.Element):
             return None
         item = self.item[0]
         self.item.pop(0)
+        
         return item
 
     def give_food_from_plate(self):
@@ -153,6 +156,14 @@ class Holder(pp.Element):
                     if len(slot.item) == 0:
                         target = slot
                         break
+            
+            if is_plate_with_food:
+                for slot in self.e['Game'].bar_couter.slots:
+                    if slot.rect.collidepoint(mpos):
+                        if len(slot.item) == 0:
+                            target = slot
+                            break
+                    
         else:
             for acts in [self.e['Game'].desk.slots, self.e['Game'].grill.slots, self.e['Game'].slime.slots]:
                 for slot in acts:
@@ -188,6 +199,7 @@ class Holder(pp.Element):
             else:
                 self.item = []
             self.plate_left_behind = None
+            
         else:
             if target.activity_type == ActivitiesTypes.PLATE_PLACE and len(self.item) > 0 and self.item[0].food_type != FoodTypes.PLATE:
                 item = self.give_item()
@@ -195,20 +207,32 @@ class Holder(pp.Element):
                 if self.plate_left_behind and self.last_holder:
                     self.last_holder.item.append(self.plate_left_behind)
                 self.last_holder = target
+                
+            elif target.activity_type == ActivitiesTypes.BAR_COUTER:
+                plate, food = self.give_plate_with_food()
+                target.get_item(plate)
+                target.get_food_on_plate(food)
+
             else:
                 if is_plate_with_food:
                     plate, food = self.give_plate_with_food()
                     target.get_item(plate)
                     target.get_food_on_plate(food)
+                    
                 else:
                     item = self.give_item()
                     target.get_item(item)
                     if self.plate_left_behind and self.last_holder:
                         self.last_holder.item.append(self.plate_left_behind)
                 self.last_holder = target
+                
             self.plate_left_behind = None
 
+
     def update(self, mpos):
+        
+        if self.activity_type == ActivitiesTypes.BAR_COUTER and len(self.item) == 2:
+            return False
         
         if not self.rect.collidepoint(mpos):
             if self.held and not self.e['Input'].holding('left_click'):
@@ -216,15 +240,19 @@ class Holder(pp.Element):
             return
         
         if self.e['Input'].pressed('left_click'):
+
             if len(self.item) == 2:
+
                 if self.food_rect and self.food_rect.collidepoint(mpos):
                     self.pickup_food_from_plate()
                 else:
                     self.pickup_plate_with_food()
+                    
             elif len(self.item) == 1:
                 self.pickup_item()
 
         elif self.held and not self.e['Input'].holding('left_click'):
+
             self.drop_item(mpos)
 
 class Generator(Holder):
@@ -263,8 +291,10 @@ class Generator(Holder):
         
         target = None
         is_food = self.item[0].food_type != FoodTypes.PLATE
+        
 
         if is_food:
+            
             for acts in [self.e['Game'].desk.slots, self.e['Game'].grill.slots, self.e['Game'].slime.slots]:
                 for slot in acts:
                     if slot.rect.collidepoint(mpos):
@@ -300,11 +330,13 @@ class Generator(Holder):
         if not self.rect.collidepoint(mpos):
             if self.held and not self.e['Input'].holding('left_click'):
                 self.drop_item(mpos)
+                
             return
         
         if self.e['Input'].pressed('left_click'):
             if not self.held:
                 self.pickup_item()
+
 
         elif self.held and not self.e['Input'].holding('left_click'):
             self.drop_item(mpos)

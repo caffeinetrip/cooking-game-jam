@@ -19,6 +19,8 @@ class Window(ElementSingleton):
         self.fps_cap = fps_cap
         self.dt_cap = dt_cap
         self.background_color = (0, 0, 0)
+        self.background_img = None
+        
         self.time = time.time()
         self.start_time = time.time()
         self.frames = 0
@@ -111,8 +113,10 @@ class Window(ElementSingleton):
         self.frame_log = self.frame_log[-60:]
         self.last_frame = time.time()
         self.screen.fill(self.background_color)
+
         if self.render_object:
             self.e['MGL'].ctx.clear(*[self.background_color[i] / 255 for i in range(3)], 1.0)
+
         self.e['Input'].update()
         self.time = time.time()
         self.frames += 1

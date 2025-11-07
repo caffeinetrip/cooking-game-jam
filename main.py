@@ -33,6 +33,7 @@ class Game(pp.PygpenGame):
         self.e['Assets'].load_folder('data/images/activities', colorkey=(0, 0, 0), alpha=True)
         
         self.e['Renderer'].set_groups(['default', 'ui'])
+        self.e['Window'].background_img = pygame.image.load('data/images/background/background.png')
         
         self.mpos = (0, 0)
         self.freeze_stack = []
@@ -62,12 +63,14 @@ class Game(pp.PygpenGame):
         self.desk = Desk()
         self.plate_place = PlatePlace()
         self.plates = Plates()
+        self.bar_couter = BarCouter()
 
-        self.e['EntityGroups'].add([self.storage, self.slime, self.grill, self.desk, self.plate_place, self.plates], group='activities')
+        self.e['EntityGroups'].add([self.storage, self.slime, self.grill, self.desk, self.plate_place, self.plates, self.bar_couter], group='activities')
 
     def update(self):
         self.hud_surf.fill((0, 0, 0, 0))
-        self.display.fill((0, 0, 0, 0))
+        self.display.blit(self.e['Window'].background_img)
+        
         self.e['Sounds'].update()
         dt_scale = 1
         self.e['Window'].dt = min(self.e['Window'].dt * dt_scale, 0.1)
@@ -98,13 +101,14 @@ class Game(pp.PygpenGame):
         self.camera.update()
         
         self.plate_place.update()
+        self.bar_couter.update()
 
-        for act in self.storage.slots + self.slime.slots + self.grill.slots + self.desk.slots + self.plate_place.slots + self.plates.slots:
+        for act in self.storage.slots + self.slime.slots + self.grill.slots + self.desk.slots + self.plate_place.slots + self.plates.slots + self.bar_couter.slots:
             act.update(self.mpos)
 
         self.e['EntityGroups'].renderz(offset=self.camera)
         
-        for act in self.storage.slots + self.slime.slots + self.grill.slots + self.desk.slots + self.plate_place.slots + self.plates.slots:
+        for act in self.storage.slots + self.slime.slots + self.grill.slots + self.desk.slots + self.plate_place.slots + self.plates.slots + self.bar_couter.slots:
             if act.held and len(act.item) > 0:
                 for item in act.item:
                     item.pos = [self.mpos[0]-16, self.mpos[1]-16]

@@ -1,0 +1,1 @@
+{"images": {"bar_couter": {"offset": [0, 0]}}, "animations": {}, "file_path": "data/images/activities/bar_couter", "id": "bar_couter", "centered": false, "offset": [0, 0], "colorkey": [0, 0, 0], "size": [1, 1], "group": "entity", "collide_with": [], "default": "bar_couter"}
