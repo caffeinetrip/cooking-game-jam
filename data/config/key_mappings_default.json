@@ -1,5 +1,6 @@
 {
   "fullscreen": ["button", 27],
   "test": ["button", 32],
-  "left_click": ["mouse", 1]
+  "left_click": ["mouse", 1],
+  "right_click": ["mouse", 3]
 }

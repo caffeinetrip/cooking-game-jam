@@ -4,9 +4,33 @@ from scripts import pygpen as pp
 
 class FoodTypes(Enum):
     HEART = 'heart'
+    GREEN_HEART = 'green_heart'
+    CUT_HEART = 'cut_heart'
+    FRIED_HEART = 'fried_heart'
+    FRIED_GREEN_HEART = 'fried_green_heart'
+    FRIED_CUT_HEART = 'fried_cut_heart'
+
     MEAT = 'meat'
+    GREEN_MEAT = 'green_meat'
+    CUT_MEAT = 'cut_meat'
+    FRIED_MEAT = 'fried_meat'
+    FRIED_GREEN_MEAT = 'fried_green_meat'
+    FRIED_CUT_MEAT = 'fried_cut_meat'
+
     EYE = 'eye'
+    GREEN_EYE = 'green_eye'
+    CUT_EYE = 'cut_eye'
+    FRIED_EYE = 'fried_eye'
+    FRIED_GREEN_EYE = 'fried_green_eye'
+    FRIED_CUT_EYE = 'fried_cut_eye'
+
     BRAIN = 'brain'
+    GREEN_BRAIN = 'green_brain'
+    CUT_BRAIN = 'cut_brain'
+    FRIED_BRAIN = 'fried_brain'
+    FRIED_GREEN_BRAIN = 'fried_green_brain'
+    FRIED_CUT_BRAIN = 'fried_cut_brain'
+
     PLATE = 'plate'
 
 class Food(pp.Entity):
@@ -21,6 +45,9 @@ class Food(pp.Entity):
         self.on_plate = False
         self.plate_item = None
 
+    def reset(self, food_type, pos, z):
+        super().__init__(type=food_type, pos=pos, z=z)
+    
     def damage(self):
         dmg = self.base_dmg
         if random.random() < 0.2:
@@ -33,7 +60,6 @@ class Food(pp.Entity):
             eater.take_dmg(damage)
         self.kill()
         
-
     def kill(self):
             
         if self.on_plate and self.plate_item:

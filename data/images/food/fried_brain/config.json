@@ -1,0 +1,1 @@
+{"images": {"fried_brain": {"offset": [0, 0]}}, "animations": {}, "file_path": "data/images/food/fried_brain", "id": "fried_brain", "centered": false, "offset": [8, 8], "colorkey": [0, 0, 0], "size": [16, 16], "group": "entity", "collide_with": [], "default": "fried_brain"}

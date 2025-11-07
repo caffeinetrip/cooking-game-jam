@@ -1,1 +1,1 @@
-{"images": {"plates": {"offset": [0, 0]}}, "animations": {}, "file_path": "data/images/activities/plates", "id": "plates", "centered": false, "offset": [0, 0], "colorkey": [0, 0, 0], "size": [1, 1], "group": "entity", "collide_with": [], "default": "plates"}
+{"images": {"plates": {"offset": [0, 0]}}, "animations": {}, "file_path": "data/images/activities/plates", "id": "plates", "centered": false, "offset": [8, 8], "colorkey": [0, 0, 0], "size": [16, 16], "group": "entity", "collide_with": [], "default": "plates"}

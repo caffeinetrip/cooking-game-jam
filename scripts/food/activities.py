@@ -34,7 +34,7 @@ class Holder(pp.Element):
         self.index = index
         
         if index != None:
-            self.remover_animation_speed = 1
+            self.remover_animation_speed = 2
     
     def reset(self):
         self.__init__(self.data['activity_type'], self.data['size'], self.data['pos'], index=self.data['index'])
@@ -260,9 +260,14 @@ class Holder(pp.Element):
         if self.activity_type == ActivitiesTypes.BAR_COUTER and len(self.item) > 0:
             self.remover_animation_speed -= dt
             
+            if self.e['NPCPlacement'].time(self.index):
+                self.remover_animation_speed = 0
+                    
             if self.remover_animation_speed <= 0:
                 self.eat(self.e['NPCPlacement'].chek(self.index))
-                self.remover_animation_speed = 1
+                self.remover_animation_speed = 2
+                
+
             
             return False
         

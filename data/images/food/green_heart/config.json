@@ -1,0 +1,1 @@
+{"images": {"green_heart": {"offset": [0, 0]}}, "animations": {}, "file_path": "data/images/food/green_heart", "id": "green_heart", "centered": false, "offset": [8, 8], "colorkey": [0, 0, 0], "size": [16, 16], "group": "entity", "collide_with": [], "default": "green_heart"}

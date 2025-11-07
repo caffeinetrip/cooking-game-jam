@@ -1,0 +1,1 @@
+{"images": {"green_meat": {"offset": [0, 0]}}, "animations": {}, "file_path": "data/images/food/green_meat", "id": "green_meat", "centered": false, "offset": [8, 8], "colorkey": [0, 0, 0], "size": [16, 16], "group": "entity", "collide_with": [], "default": "green_meat"}

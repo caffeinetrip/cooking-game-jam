@@ -1,0 +1,1 @@
+{"images": {"fried_cut_eye": {"offset": [0, 0]}}, "animations": {}, "file_path": "data/images/food/fried_cut_eye", "id": "fried_cut_eye", "centered": false, "offset": [8, 8], "colorkey": [0, 0, 0], "size": [16, 16], "group": "entity", "collide_with": [], "default": "fried_cut_eye"}

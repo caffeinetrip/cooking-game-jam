@@ -1,19 +1,26 @@
 import random, pygame
 from enum import Enum
 import scripts.pygpen as pp
+from scripts.food.food import FoodTypes
 
 class NPCsTypes(Enum):
     MADCAT = 'madcat'
     MADBEAR = 'madbear'
     MADDOVE = 'maddove'
     MADELEPHANT = 'madelephant'
+class OrderDisplay(pp.Entity):
+    def __init__(self, food_type: FoodTypes, pos, z=100):
+        super().__init__(type=food_type.value, pos=pos, z=z)
+        self.food_type = food_type
 
 class NPC(pp.Entity):
-    def __init__(self, npc_type: NPCsTypes, complexity, pos, z=-1):
+    def __init__(self, npc_type: NPCsTypes, complexity, pos, order, z=-1):
         super().__init__(type=npc_type, pos=pos, z=z)
         
         self.type = npc_type
         self.health = 10
+        
+        self.order = order
         
         if random.random() < complexity * 0.1:
             self.health += 10
@@ -21,6 +28,7 @@ class NPC(pp.Entity):
         self.timer = 10.0
         self.pos = pos
         self.alive = True
+        self.order_display = None
 
     def take_dmg(self, dmg):
         self.health -= dmg
@@ -35,6 +43,7 @@ class NPC(pp.Entity):
 class NPCPlacement(pp.ElementSingleton):
     SLOTS = 6
     POS = {i: (79 + i*40, 55) for i in range(SLOTS)}
+    GUI_POS = {i: (61 + i*40, 75) for i in range(SLOTS)}
     WEIGHTS = [40, 30, 20, 10]
     TOTAL_W = sum(WEIGHTS)
 
@@ -47,6 +56,14 @@ class NPCPlacement(pp.ElementSingleton):
         
         self.base_spawn_delay = 6.0
         self.spawn_delay_time = 6.0
+        
+        self.order_icon = None
+
+    def load_assets(self):
+        try:
+            self.order_icon = pygame.image.load('data/images/activities/hud/order.png').convert_alpha()
+        except:
+            self.order_icon = None
 
     def rand_type(self):
         r = random.randint(1, self.TOTAL_W)
@@ -71,31 +88,43 @@ class NPCPlacement(pp.ElementSingleton):
         streak_bonus = self.kill_streak // 5
 
         return max(0, base_complexity + streak_bonus)
-        
+                
     def spawn_npc(self):
         empty_slots = [i for i, n in enumerate(self.npcs) if n is None]
         if not empty_slots:
             return
         slot = random.choice(empty_slots)
-        npc = NPC(self.rand_type(), self.complexity, self.POS[slot])
+        order = random.choice([ft for ft in list(FoodTypes) if ft != FoodTypes.PLATE])
+        npc = NPC(self.rand_type(), self.complexity, self.POS[slot], order)
         self.npcs[slot] = npc
         self.e['EntityGroups'].add(npc, group='npc')
         
+        order_display = OrderDisplay(order, self.GUI_POS[slot], z=100)
+        npc.order_display = order_display
+        self.e['EntityGroups'].add(order_display, group='ui')
+
         jitter = random.uniform(-2.0, 2.0)
         self.spawn_delay_time = self.base_spawn_delay - self.complexity + jitter
         self.spawn_delay_time = max(4.0, self.spawn_delay_time)
-
+        
     def feed(self, slot, dmg=5):
         npc = self.npcs[slot]
         if npc and npc.alive:
             npc.take_dmg(dmg)
             if not npc.alive:
                 self.kill_streak += 1
+                if npc.order_display:
+                    self.e['EntityGroups'].groups['ui'].remove(npc.order_display)
                 self.npcs[slot] = None
                 
     def chek(self, pos):
         if self.npcs[pos]:
             return self.npcs[pos]
+        return False
+    
+    def time(self, pos):
+        if self.npcs[pos]:
+            return self.npcs[pos].timer < 2
         return False
         
     def ping(self, pos):
@@ -115,7 +144,7 @@ class NPCPlacement(pp.ElementSingleton):
                     start_angle = 1.57079632679
                     pygame.draw.arc(surface, (200, 200, 200), 
                                     (center[0] - radius, center[1] - radius, radius*2, radius*2),
-                                    start_angle, start_angle + angle, 3)    
+                                    start_angle, start_angle + angle, 3)
                     
     def update(self, dt, surf):
         self.spawn_timer -= dt
@@ -127,11 +156,10 @@ class NPCPlacement(pp.ElementSingleton):
 
         for i in range(self.SLOTS):
             npc = self.npcs[i]
-            
             if npc and npc.alive:
                 npc.update(dt)
                 if not npc.alive:
-
+                    if npc.order_display:
+                        self.e['EntityGroups'].groups['ui'].remove(npc.order_display)
                     self.npcs[i] = None
                     self.e['EntityGroups'].groups['npc'].remove(npc)
-        

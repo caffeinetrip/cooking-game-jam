@@ -108,7 +108,10 @@ class Game(pp.PygpenGame):
         
         self.plate_place.update()
         self.bar_couter.update()
-
+        self.slime.update()
+        self.desk.update(self.mpos)
+        self.grill.update(self.e['Window'].dt)
+        
         for act in self.storage.slots + self.slime.slots + self.grill.slots + self.desk.slots + self.plate_place.slots + self.plates.slots + self.bar_couter.slots:
             act.update(self.mpos, self.e['Window'].dt)
 

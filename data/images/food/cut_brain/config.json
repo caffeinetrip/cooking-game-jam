@@ -1,0 +1,1 @@
+{"images": {"cut_brain": {"offset": [0, 0]}}, "animations": {}, "file_path": "data/images/food/cut_brain", "id": "cut_brain", "centered": false, "offset": [8, 8], "colorkey": [0, 0, 0], "size": [16, 16], "group": "entity", "collide_with": [], "default": "cut_brain"}
