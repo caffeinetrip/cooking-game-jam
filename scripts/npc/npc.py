@@ -1,4 +1,4 @@
-import random
+import random, pygame
 from enum import Enum
 import scripts.pygpen as pp
 
@@ -101,11 +101,29 @@ class NPCPlacement(pp.ElementSingleton):
     def ping(self, pos):
         print(f'pong {pos}')
         
-    def update(self, dt):
+    def draw_timer(self, surface):
+        for i in range(self.SLOTS):
+            npc = self.npcs[i]
+            if npc and npc.alive and npc.timer > 0:
+                center = (int(self.POS[i][0] + 34), int(self.POS[i][1]))
+                radius = 5
+                progress = max(0, npc.timer / 10.0)
+                angle = -2 * 3.1415926535 * progress
+                pygame.draw.circle(surface, (2, 2, 2), center, radius + 2)
+                pygame.draw.circle(surface, (255, 255, 255), center, radius, 3)
+                if progress > 0:
+                    start_angle = 1.57079632679
+                    pygame.draw.arc(surface, (200, 200, 200), 
+                                    (center[0] - radius, center[1] - radius, radius*2, radius*2),
+                                    start_angle, start_angle + angle, 3)    
+                    
+    def update(self, dt, surf):
         self.spawn_timer -= dt
         if self.spawn_timer <= 0:
             self.spawn_npc()
             self.spawn_timer = self.spawn_delay()
+
+        self.draw_timer(surf)
 
         for i in range(self.SLOTS):
             npc = self.npcs[i]

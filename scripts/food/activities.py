@@ -262,6 +262,7 @@ class Holder(pp.Element):
             
             if self.remover_animation_speed <= 0:
                 self.eat(self.e['NPCPlacement'].chek(self.index))
+                self.remover_animation_speed = 1
             
             return False
         

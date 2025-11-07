@@ -104,7 +104,7 @@ class Game(pp.PygpenGame):
 
         self.camera.update()
         self.state.update(self.e['Window'].dt)
-        self.npc_placemant.update(self.e['Window'].dt)
+        self.npc_placemant.update(self.e['Window'].dt, self.hud_surf)
         
         self.plate_place.update()
         self.bar_couter.update()
@@ -113,6 +113,7 @@ class Game(pp.PygpenGame):
             act.update(self.mpos, self.e['Window'].dt)
 
         self.e['EntityGroups'].renderz(offset=self.camera)
+        
         
         for act in self.storage.slots + self.slime.slots + self.grill.slots + self.desk.slots + self.plate_place.slots + self.plates.slots + self.bar_couter.slots:
             if act.held and len(act.item) > 0:
