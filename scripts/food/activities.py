@@ -1,4 +1,4 @@
-import pygame
+import pygame, random
 from enum import Enum
 from scripts import pygpen as pp
 from scripts.food.food import FoodTypes, Food
@@ -13,8 +13,16 @@ class ActivitiesTypes(Enum):
     BAR_COUTER = 'bar_couter'
 
 class Holder(pp.Element):
-    def __init__(self, activity_type, size, pos, custom_id=None, singleton=False, register=False):
+    def __init__(self, activity_type, size, pos, index=None, custom_id=None, singleton=False, register=False):
         super().__init__(custom_id, singleton, register)
+        
+        self.data = {
+            'activity_type': activity_type,
+            'size': size,
+            'pos': pos,
+            'index': index
+        }
+       
         self.pos = pos
         self.size = size
         self.activity_type = activity_type
@@ -23,6 +31,13 @@ class Holder(pp.Element):
         self.last_holder = None
         self.original_pos = None
         self.plate_left_behind = None
+        self.index = index
+        
+        if index != None:
+            self.remover_animation_speed = 1
+    
+    def reset(self):
+        self.__init__(self.data['activity_type'], self.data['size'], self.data['pos'], index=self.data['index'])
 
     @property
     def rect(self):
@@ -60,9 +75,20 @@ class Holder(pp.Element):
             new_item.z = 11
         new_item.pos = [self.pos[0] - new_item.size[0]//2 + 2.5,
                        self.pos[1] - new_item.size[1]//2 + 2.5]
-        self.e['EntityGroups'].add(new_item, group='activities')
+
         return True
 
+    def eat(self, npc):
+
+        for item in self.item:
+            item.on_eat(npc)
+                
+        self.item = []
+        self.held = False
+        self.last_holder = None
+        self.plate_left_behind = None
+        self.original_pos = None
+        
     def get_food_on_plate(self, food):
         if self.activity_type != ActivitiesTypes.PLATE_PLACE and self.activity_type != ActivitiesTypes.BAR_COUTER:
             return False
@@ -178,8 +204,8 @@ class Holder(pp.Element):
                         if len(slot.item) == 1 and slot.item[0].food_type == FoodTypes.PLATE:
                             target = slot
                             break
-
-        if not target:
+        
+        if not target or (target.activity_type == ActivitiesTypes.BAR_COUTER and not self.e['NPCPlacement'].chek(target.index)):
             if self.last_holder:
                 if is_plate_with_food:
                     plate, food = self.give_plate_with_food()
@@ -229,9 +255,14 @@ class Holder(pp.Element):
             self.plate_left_behind = None
 
 
-    def update(self, mpos):
-        
-        if self.activity_type == ActivitiesTypes.BAR_COUTER and len(self.item) == 2:
+    def update(self, mpos, dt):
+
+        if self.activity_type == ActivitiesTypes.BAR_COUTER and len(self.item) > 0:
+            self.remover_animation_speed -= dt
+            
+            if self.remover_animation_speed <= 0:
+                self.eat(self.e['NPCPlacement'].chek(self.index))
+            
             return False
         
         if not self.rect.collidepoint(mpos):
@@ -326,7 +357,7 @@ class Generator(Holder):
         
         self.item = []
 
-    def update(self, mpos):
+    def update(self, mpos, dt):
         if not self.rect.collidepoint(mpos):
             if self.held and not self.e['Input'].holding('left_click'):
                 self.drop_item(mpos)

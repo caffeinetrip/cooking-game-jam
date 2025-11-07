@@ -6,15 +6,13 @@ class BarCouter(pp.Entity):
         super().__init__(type=ActivitiesTypes.BAR_COUTER.value, pos=(67, 115), z=0)
         
         self.slots = [
-            Holder(ActivitiesTypes.BAR_COUTER, size=(20,20), pos=(87, 115)),
-            Holder(ActivitiesTypes.BAR_COUTER, size=(20,20), pos=(127, 115)),
-            Holder(ActivitiesTypes.BAR_COUTER, size=(20,20), pos=(167, 115)),
-            Holder(ActivitiesTypes.BAR_COUTER, size=(20,20), pos=(207, 115)),
-            Holder(ActivitiesTypes.BAR_COUTER, size=(20,20), pos=(247, 115)),
-            Holder(ActivitiesTypes.BAR_COUTER, size=(20,20), pos=(287, 115))
+            Holder(ActivitiesTypes.BAR_COUTER, size=(20,20), pos=(87, 115), index=0),
+            Holder(ActivitiesTypes.BAR_COUTER, size=(20,20), pos=(127, 115), index=1),
+            Holder(ActivitiesTypes.BAR_COUTER, size=(20,20), pos=(167, 115), index=2),
+            Holder(ActivitiesTypes.BAR_COUTER, size=(20,20), pos=(207, 115), index=3),
+            Holder(ActivitiesTypes.BAR_COUTER, size=(20,20), pos=(247, 115), index=4),
+            Holder(ActivitiesTypes.BAR_COUTER, size=(20,20), pos=(287, 115), index=5)
         ]
-        
-        self
         
     def update(self):
         for slot in self.slots:

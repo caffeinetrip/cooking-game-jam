@@ -82,13 +82,11 @@ class Game(pp.PygpenGame):
         self.e['Window'].dt = min(self.e['Window'].dt * dt_scale, 0.1)
 
         if self.e['Input'].pressed('fullscreen'):
+
             if self.settings.fullscreen:
                 self.settings.update('fullscreen', 'disabled')
             else:
                 self.settings.update('fullscreen', 'enabled')
-                
-        if self.e['Input'].pressed('test'):
-            self.slime.slots[0].get_item(self.e['EntityGroups'].groups['food'][0])
 
         window_aspect = self.e['Window'].dimensions[0] / self.e['Window'].dimensions[1]
         intended_aspect = 16 / 9
@@ -112,7 +110,7 @@ class Game(pp.PygpenGame):
         self.bar_couter.update()
 
         for act in self.storage.slots + self.slime.slots + self.grill.slots + self.desk.slots + self.plate_place.slots + self.plates.slots + self.bar_couter.slots:
-            act.update(self.mpos)
+            act.update(self.mpos, self.e['Window'].dt)
 
         self.e['EntityGroups'].renderz(offset=self.camera)
         

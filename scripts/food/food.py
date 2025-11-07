@@ -10,7 +10,7 @@ class FoodTypes(Enum):
     PLATE = 'plate'
 
 class Food(pp.Entity):
-    def __init__(self, food_type: FoodTypes, pos, base_dmg=5, z=0, custom_id=None):
+    def __init__(self, food_type: FoodTypes, pos, base_dmg=10, z=0, custom_id=None):
         super().__init__(type=food_type.value, pos=pos, z=z)
         self.food_type = food_type
         self.base_dmg = base_dmg
@@ -28,11 +28,25 @@ class Food(pp.Entity):
         return dmg
 
     def on_eat(self, eater):
-        damage = self.damage()
-        eater.take_damage(damage)
+        if self.food_type != FoodTypes.PLATE:
+            damage = self.damage()
+            eater.take_dmg(damage)
         self.kill()
+        
+
+    def kill(self):
+            
+        if self.on_plate and self.plate_item:
+            self.plate_item.kill()
+            self.on_plate = False
+        
+        if self in self.e['EntityGroups'].groups['food']:
+            self.e['EntityGroups'].groups['food'].remove(self)
+        
+        del self
+
 
     def update_position_on_plate(self):
         if self.on_plate and self.plate_item:
             self.pos = [self.plate_item.pos[0] + (self.plate_item.size[0] - self.size[0]) / 2,
-                       self.plate_item.pos[1] + (self.plate_item.size[1] - self.size[1]) / 2 - 2]
+                        self.plate_item.pos[1] + (self.plate_item.size[1] - self.size[1]) / 2 - 2]

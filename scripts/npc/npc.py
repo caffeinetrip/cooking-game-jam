@@ -25,7 +25,7 @@ class NPC(pp.Entity):
     def take_dmg(self, dmg):
         self.health -= dmg
         if self.health <= 0:
-            self.alive = False
+            self.timer = -1
 
     def update(self, dt):
         self.timer -= dt
@@ -95,8 +95,11 @@ class NPCPlacement(pp.ElementSingleton):
                 
     def chek(self, pos):
         if self.npcs[pos]:
-            return True
+            return self.npcs[pos]
         return False
+        
+    def ping(self, pos):
+        print(f'pong {pos}')
         
     def update(self, dt):
         self.spawn_timer -= dt
@@ -106,9 +109,11 @@ class NPCPlacement(pp.ElementSingleton):
 
         for i in range(self.SLOTS):
             npc = self.npcs[i]
+            
             if npc and npc.alive:
                 npc.update(dt)
                 if not npc.alive:
+
                     self.npcs[i] = None
                     self.e['EntityGroups'].groups['npc'].remove(npc)
         
