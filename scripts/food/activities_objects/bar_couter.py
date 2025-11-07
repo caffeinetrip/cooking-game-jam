@@ -14,6 +14,8 @@ class BarCouter(pp.Entity):
             Holder(ActivitiesTypes.BAR_COUTER, size=(20,20), pos=(287, 115))
         ]
         
+        self
+        
     def update(self):
         for slot in self.slots:
             if len(slot.item) == 2:

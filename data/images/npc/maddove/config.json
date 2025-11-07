@@ -1,0 +1,1 @@
+{"images": {"maddove": {"offset": [0, 0]}}, "animations": {}, "file_path": "data/images/npc/maddove", "id": "maddove", "centered": false, "offset": [0, 0], "colorkey": [0, 0, 0], "size": [1, 1], "group": "entity", "collide_with": [], "default": "maddove"}

@@ -2,8 +2,10 @@ import pygame
 import scripts.pygpen as pp
 from scripts.default.settings import Settings
 from scripts.default.transition import Transition
+from scripts.default.state import State
 from scripts.food.food import Food, FoodTypes
 from scripts.food.activities_objects import *
+from scripts.npc.npc import NPC, NPCPlacement
 class Game(pp.PygpenGame):
     def load(self):
         base_resolution = (384, 216)
@@ -27,6 +29,9 @@ class Game(pp.PygpenGame):
         self.display = pygame.Surface(base_resolution, pygame.SRCALPHA)
         
         self.hud_surf = self.display.copy()
+        
+        self.state = State()
+        self.npc_placemant = NPCPlacement()
         
         self.e['Assets'].load_folder('data/images/misc', colorkey=(0, 0, 0), alpha=True)
         self.e['Assets'].load_folder('data/images/food', colorkey=(0, 0, 0), alpha=True)
@@ -53,6 +58,7 @@ class Game(pp.PygpenGame):
     def restart(self):
         self.e['EntityDB'].load('data/images/food')
         self.e['EntityDB'].load('data/images/activities')
+        self.e['EntityDB'].load('data/images/npc')
 
         self.load_activities()
 
@@ -99,6 +105,8 @@ class Game(pp.PygpenGame):
         self.mpos = (relative_mpos[0] * self.display.get_width(), relative_mpos[1] * self.display.get_height())
 
         self.camera.update()
+        self.state.update(self.e['Window'].dt)
+        self.npc_placemant.update(self.e['Window'].dt)
         
         self.plate_place.update()
         self.bar_couter.update()
