@@ -1,0 +1,1 @@
+{"images": {"plate": {"offset": [-2, -2]}}, "animations": {}, "file_path": "data/images/food/plate", "id": "plate", "centered": false, "offset": [10, 10], "colorkey": [0, 0, 0], "size": [20, 20], "group": "entity", "collide_with": [], "default": "plate"}

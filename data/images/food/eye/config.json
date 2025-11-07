@@ -1,1 +1,1 @@
-{"images": {"eye": {"offset": [0, 0]}}, "animations": {}, "file_path": "data/images/food/eye", "id": "eye", "centered": false, "offset": [0, 0], "colorkey": [0, 0, 0], "size": [1, 1], "group": "entity", "collide_with": [], "default": "eye"}
+{"images": {"eye": {"offset": [0, 0]}}, "animations": {}, "file_path": "data/images/food/eye", "id": "eye", "centered": false, "offset": [8, 8], "colorkey": [0, 0, 0], "size": [16, 16], "group": "entity", "collide_with": [], "default": "eye"}

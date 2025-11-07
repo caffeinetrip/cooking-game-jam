@@ -52,7 +52,7 @@ class Game(pp.PygpenGame):
     def restart(self):
         self.e['EntityDB'].load('data/images/food')
         self.e['EntityDB'].load('data/images/activities')
-        self.spawn_food(FoodTypes.BRAIN, (200, 150))
+
         self.load_activities()
 
     def load_activities(self):
@@ -64,11 +64,6 @@ class Game(pp.PygpenGame):
         self.plates = Plates()
 
         self.e['EntityGroups'].add([self.storage, self.slime, self.grill, self.desk, self.plate_place, self.plates], group='activities')
-
-    def spawn_food(self, food_type: FoodTypes, pos):
-        food = Food(food_type=food_type, pos=pos, z=10)
-        self.e['EntityGroups'].add(food, group='food')
-        return food
 
     def update(self):
         self.hud_surf.fill((0, 0, 0, 0))
@@ -101,16 +96,19 @@ class Game(pp.PygpenGame):
         self.mpos = (relative_mpos[0] * self.display.get_width(), relative_mpos[1] * self.display.get_height())
 
         self.camera.update()
+        
+        self.plate_place.update()
 
-        for act in self.storage.slots + self.slime.slots + self.grill.slots + self.desk.slots + self.plate_place.slots:
+        for act in self.storage.slots + self.slime.slots + self.grill.slots + self.desk.slots + self.plate_place.slots + self.plates.slots:
             act.update(self.mpos)
 
         self.e['EntityGroups'].renderz(offset=self.camera)
         
-        for act in self.storage.slots + self.slime.slots + self.grill.slots + self.desk.slots + self.plate_place.slots:
-            if act.held and act.item:
-                act.item.pos = [self.mpos[0]-8, self.mpos[1]-8]
-                act.item.render(self.display, offset=self.camera)
+        for act in self.storage.slots + self.slime.slots + self.grill.slots + self.desk.slots + self.plate_place.slots + self.plates.slots:
+            if act.held and len(act.item) > 0:
+                for item in act.item:
+                    item.pos = [self.mpos[0]-16, self.mpos[1]-16]
+                    item.render(self.display, offset=self.camera)
 
         self.transition.update()
         self.transition.render()

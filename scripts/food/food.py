@@ -18,6 +18,8 @@ class Food(pp.Entity):
         self.in_holder = False
         self.on_holder = False
         self.original_z = z
+        self.on_plate = False
+        self.plate_item = None
 
     def damage(self):
         dmg = self.base_dmg
@@ -29,3 +31,8 @@ class Food(pp.Entity):
         damage = self.damage()
         eater.take_damage(damage)
         self.kill()
+
+    def update_position_on_plate(self):
+        if self.on_plate and self.plate_item:
+            self.pos = [self.plate_item.pos[0] + (self.plate_item.size[0] - self.size[0]) / 2,
+                       self.plate_item.pos[1] + (self.plate_item.size[1] - self.size[1]) / 2 - 2]
