@@ -9,6 +9,7 @@ from scripts.npc.npc import NPC, NPCPlacement
 from scripts.default.hud import HUD
 from scripts.dialogue_system.dialogue_system import DialogueCharacter, DialogueSystem
 from scripts.default.const import dialogues
+
 class Game(pp.PygpenGame):
     def load(self):
         base_resolution = (384, 216)
@@ -88,12 +89,13 @@ class Game(pp.PygpenGame):
         self.hud_surf.fill((0, 0, 0, 0))
         self.display.blit(self.e['Window'].background_img)
         
+        print(self.e['EntityGroups'].groups)
+
         self.e['Sounds'].update()
         dt_scale = 1
         self.e['Window'].dt = min(self.e['Window'].dt * dt_scale, 0.1)
 
         if self.e['Input'].pressed('fullscreen'):
-        
             if self.settings.fullscreen:
                 self.settings.update('fullscreen', 'disabled')
             else:
@@ -104,7 +106,6 @@ class Game(pp.PygpenGame):
         
         if window_aspect >= intended_aspect:
             playable_area = pygame.Rect(0, 0, self.e['Window'].dimensions[1] * intended_aspect, self.e['Window'].dimensions[1])
-            
         else:
             playable_area = pygame.Rect(0, 0, self.e['Window'].dimensions[0], self.e['Window'].dimensions[0] / intended_aspect)
             
@@ -113,7 +114,14 @@ class Game(pp.PygpenGame):
         relative_mpos = ((self.e['Mouse'].pos[0] - playable_area.x) / playable_area.width, (self.e['Mouse'].pos[1] - playable_area.y) / playable_area.height)
         self.mpos = (relative_mpos[0] * self.display.get_width(), relative_mpos[1] * self.display.get_height())
         
-        if not self.e['State'].gameplay_stop:
+        if self.e['State'].act == -1:
+            if self.e['Input'].pressed('left_click') or self.e['Input'].pressed('test'):
+                self.e['Transition'].transition(lambda: (
+                    self.e['State'].__setattr__('act', 0),
+                    self.e['DialogueSystem'].start_dialogue('intro')
+                ))
+        
+        if not self.e['State'].gameplay_stop and self.e['State'].act >= 0:
             self.npc_placemant.update(self.e['Window'].dt, self.hud_surf)
         
         self.camera.update()
@@ -124,24 +132,26 @@ class Game(pp.PygpenGame):
         self.e['DialogueSystem'].update(self.e['Window'].dt)
         self.e['DialogueSystem'].render(self.hud_surf)
         
-        if not self.e['State'].gameplay_stop:
+        if not self.e['State'].gameplay_stop and self.e['State'].act >= 0:
             self.plate_place.update()
             self.bar_couter.update()
             self.slime.update()
             self.desk.update(self.mpos)
             self.grill.update(self.e['Window'].dt)
         
-        for act in self.storage.slots + self.slime.slots + self.grill.slots + self.desk.slots + self.plate_place.slots + self.plates.slots + self.bar_couter.slots:
-            act.update(self.mpos, self.e['Window'].dt)
+        if self.e['State'].act >= 0:
+            for act in self.storage.slots + self.slime.slots + self.grill.slots + self.desk.slots + self.plate_place.slots + self.plates.slots + self.bar_couter.slots:
+                act.update(self.mpos, self.e['Window'].dt)
 
         self.e['EntityGroups'].renderz(offset=self.camera)
         
-        
-        for act in self.storage.slots + self.slime.slots + self.grill.slots + self.desk.slots + self.plate_place.slots + self.plates.slots + self.bar_couter.slots:
-            if act.held and len(act.item) > 0:
-                for item in act.item:
-                    item.pos = [self.mpos[0]-16, self.mpos[1]-16]
-                    item.render(self.display, offset=self.camera)
+        if isinstance(self.e['State'].act, int):
+            if self.e['State'].act >= 0:
+                for act in self.storage.slots + self.slime.slots + self.grill.slots + self.desk.slots + self.plate_place.slots + self.plates.slots + self.bar_couter.slots:
+                    if act.held and len(act.item) > 0:
+                        for item in act.item:
+                            item.pos = [self.mpos[0]-16, self.mpos[1]-16]
+                            item.render(self.display, offset=self.camera)
 
         self.transition.update()
         self.transition.render()

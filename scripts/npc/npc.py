@@ -9,6 +9,7 @@ class NPCsTypes(Enum):
     MADDOVE = 'maddove'
     MADELEPHANT = 'madelephant'
     GRANDMOTHER = 'grandmother'
+    BOSS = 'boss'
     
 class OrderDisplay(pp.Entity):
     def __init__(self, food_type: FoodTypes, pos, z=100):
@@ -54,6 +55,59 @@ class NPC(pp.Entity):
                 self.e['State'].health -= 1
             self.alive = False
 
+class Boss(pp.Entity):
+    def __init__(self):
+        super().__init__(type='boss', pos=(0, 0), z=-1)
+        
+        self.health = 75
+        self.alive = True
+        self.damage_timer = 15.0
+        self.orders = []
+        self.order_displays = []
+        self.damage_accumulated = 0
+        
+        self.generate_orders()
+        
+    def generate_orders(self):
+        for display in self.order_displays:
+            if display in self.e['EntityGroups'].groups['ui']:
+                self.e['EntityGroups'].groups['ui'].remove(display)
+        self.order_displays = []
+        
+        gui_positions = {i: (61 + i*40, 75) for i in range(6)}
+        
+        all_food_types = [ft for ft in list(FoodTypes) if ft != FoodTypes.PLATE]
+        self.orders = [random.choice(all_food_types) for _ in range(6)]
+        
+        for i, order in enumerate(self.orders):
+            order_display = OrderDisplay(order, gui_positions[i], z=100)
+            self.order_displays.append(order_display)
+            self.e['EntityGroups'].add(order_display, group='ui')
+    
+    def take_dmg(self, dmg, slot):
+        self.health -= dmg
+        self.damage_accumulated += dmg
+        
+        if self.damage_accumulated >= 15:
+            self.damage_accumulated = 0
+            self.generate_orders()
+        
+        if self.health <= 0:
+            self.alive = False
+            for display in self.order_displays:
+                if display in self.e['EntityGroups'].groups['ui']:
+                    self.e['EntityGroups'].groups['ui'].remove(display)
+            self.e['State'].boss_defeated = True
+            
+    def update(self, dt):
+        if not self.alive:
+            return
+            
+        self.damage_timer -= dt
+        if self.damage_timer <= 0:
+            self.e['State'].health -= 1
+            self.damage_timer = 15.0
+
 class NPCPlacement(pp.ElementSingleton):
     SLOTS = 6
     POS = {i: (79 + i*40, 55) for i in range(SLOTS)}
@@ -62,6 +116,59 @@ class NPCPlacement(pp.ElementSingleton):
     TOTAL_W = sum(WEIGHTS)
     GRANDMOTHER_SLOT = 2
 
+    ACT_SPAWN_DELAYS = {
+        3: 6.0,
+        5: 8.0,
+        6: 9.0,
+        8: 8.0,
+    }
+    
+    ACT_FOOD_POOLS = {
+        3: {
+            'pools': [
+                [FoodTypes.HEART, FoodTypes.MEAT, FoodTypes.EYE, FoodTypes.BRAIN],
+                [FoodTypes.GREEN_HEART, FoodTypes.GREEN_MEAT, FoodTypes.GREEN_EYE, FoodTypes.GREEN_BRAIN],
+            ],
+            'weights': [80, 20]
+        },
+        5: {
+            'pools': [
+                [FoodTypes.HEART, FoodTypes.MEAT, FoodTypes.EYE, FoodTypes.BRAIN],
+                [FoodTypes.GREEN_HEART, FoodTypes.GREEN_MEAT, FoodTypes.GREEN_EYE, FoodTypes.GREEN_BRAIN],
+                [FoodTypes.CUT_MEAT, FoodTypes.CUT_HEART, FoodTypes.CUT_EYE, FoodTypes.CUT_BRAIN],
+                [FoodTypes.FRIED_HEART, FoodTypes.FRIED_GREEN_HEART, FoodTypes.FRIED_CUT_HEART,
+                 FoodTypes.FRIED_MEAT, FoodTypes.FRIED_GREEN_MEAT, FoodTypes.FRIED_CUT_MEAT,
+                 FoodTypes.FRIED_EYE, FoodTypes.FRIED_GREEN_EYE, FoodTypes.FRIED_CUT_EYE,
+                 FoodTypes.FRIED_BRAIN, FoodTypes.FRIED_GREEN_BRAIN, FoodTypes.FRIED_CUT_BRAIN],
+            ],
+            'weights': [10, 40, 40, 10]
+        },
+        6: {
+            'pools': [
+                [FoodTypes.HEART, FoodTypes.MEAT, FoodTypes.EYE, FoodTypes.BRAIN],
+                [FoodTypes.GREEN_HEART, FoodTypes.GREEN_MEAT, FoodTypes.GREEN_EYE, FoodTypes.GREEN_BRAIN],
+                [FoodTypes.CUT_MEAT, FoodTypes.CUT_HEART, FoodTypes.CUT_EYE, FoodTypes.CUT_BRAIN],
+                [FoodTypes.FRIED_HEART, FoodTypes.FRIED_GREEN_HEART, FoodTypes.FRIED_CUT_HEART,
+                 FoodTypes.FRIED_MEAT, FoodTypes.FRIED_GREEN_MEAT, FoodTypes.FRIED_CUT_MEAT,
+                 FoodTypes.FRIED_EYE, FoodTypes.FRIED_GREEN_EYE, FoodTypes.FRIED_CUT_EYE,
+                 FoodTypes.FRIED_BRAIN, FoodTypes.FRIED_GREEN_BRAIN, FoodTypes.FRIED_CUT_BRAIN],
+            ],
+            'weights': [10, 20, 20, 40]
+        },
+        8: {
+            'pools': [
+                [FoodTypes.HEART, FoodTypes.MEAT, FoodTypes.EYE, FoodTypes.BRAIN],
+                [FoodTypes.GREEN_HEART, FoodTypes.GREEN_MEAT, FoodTypes.GREEN_EYE, FoodTypes.GREEN_BRAIN],
+                [FoodTypes.CUT_MEAT, FoodTypes.CUT_HEART, FoodTypes.CUT_EYE, FoodTypes.CUT_BRAIN],
+                [FoodTypes.FRIED_HEART, FoodTypes.FRIED_GREEN_HEART, FoodTypes.FRIED_CUT_HEART,
+                 FoodTypes.FRIED_MEAT, FoodTypes.FRIED_GREEN_MEAT, FoodTypes.FRIED_CUT_MEAT,
+                 FoodTypes.FRIED_EYE, FoodTypes.FRIED_GREEN_EYE, FoodTypes.FRIED_CUT_EYE,
+                 FoodTypes.FRIED_BRAIN, FoodTypes.FRIED_GREEN_BRAIN, FoodTypes.FRIED_CUT_BRAIN],
+            ],
+            'weights': [10, 10, 10, 70]
+        },
+    }
+
     def __init__(self, custom_id=None):
         super().__init__(custom_id)
         
@@ -69,14 +176,35 @@ class NPCPlacement(pp.ElementSingleton):
         self.spawn_timer = 0.0
         self.kill_streak = 0
         
-        self.base_spawn_delay = 10.0
-        self.spawn_delay_time = 10.0
-        
         self.order_icon = None
         
         self.health_hud = pygame.image.load('data/images/hud/madheart.png')
         
         self.grandmother_spawned = False
+        
+        self.boss = None
+
+
+    def reset_all_npcs(self):
+        for i in range(self.SLOTS):
+            npc = self.npcs[i]
+            if npc:
+                if npc.order_display and npc.order_display in self.e['EntityGroups'].groups['ui']:
+                    self.e['EntityGroups'].groups['ui'].remove(npc.order_display)
+                if npc in self.e['EntityGroups'].groups['npc']:
+                    self.e['EntityGroups'].groups['npc'].remove(npc)
+                self.npcs[i] = None
+        
+        if self.boss:
+            for display in self.boss.order_displays:
+                if display in self.e['EntityGroups'].groups['ui']:
+                    self.e['EntityGroups'].groups['ui'].remove(display)
+            if self.boss in self.e['EntityGroups'].groups['npc']:
+                self.e['EntityGroups'].groups['npc'].remove(self.boss)
+            self.boss = None
+        
+        self.grandmother_spawned = False
+        self.spawn_timer = 0.0
 
     def load_assets(self):
         try:
@@ -91,10 +219,26 @@ class NPCPlacement(pp.ElementSingleton):
             if r <= 0:
                 return list(NPCsTypes)[i].value
 
-    def spawn_delay(self):
-        base = self.spawn_delay_time
-        speed = self.kill_streak * 0.4
-        return max(4.0, base - speed)
+    def get_act_spawn_delay(self):
+        act = self.e['State'].act
+        return self.ACT_SPAWN_DELAYS.get(act, 10.0)
+    
+    def get_random_order_for_act(self):
+        act = self.e['State'].act
+        
+        if act not in self.ACT_FOOD_POOLS:
+            return random.choice([ft for ft in list(FoodTypes) if ft != FoodTypes.PLATE])
+        
+        pool_data = self.ACT_FOOD_POOLS[act]
+        total_weight = sum(pool_data['weights'])
+        r = random.randint(1, total_weight)
+        
+        for i, weight in enumerate(pool_data['weights']):
+            r -= weight
+            if r <= 0:
+                return random.choice(pool_data['pools'][i])
+        
+        return random.choice(pool_data['pools'][0])
 
     @property
     def complexity(self):
@@ -140,14 +284,43 @@ class NPCPlacement(pp.ElementSingleton):
         self.e['EntityGroups'].add(order_display, group='ui')
         
         self.grandmother_spawned = True
-                
-    def spawn_npc(self):
-        empty_slots = [i for i, n in enumerate(self.npcs) if n is None]
-        if not empty_slots:
+    
+    def spawn_boss(self):
+        if self.boss is not None:
             return
         
-        slot = random.choice(empty_slots)
-        order = random.choice([ft for ft in list(FoodTypes) if ft != FoodTypes.PLATE])
+        self.boss = Boss()
+        self.e['EntityGroups'].add(self.boss, group='npc')
+                
+    def get_valid_spawn_slots(self):
+        empty_slots = [i for i, n in enumerate(self.npcs) if n is None]
+        if not empty_slots:
+            return []
+        
+        occupied_slots = [i for i, n in enumerate(self.npcs) if n is not None]
+        
+        valid_slots = []
+        for slot in empty_slots:
+            is_valid = True
+            for occupied in occupied_slots:
+                if abs(slot - occupied) < 2:
+                    is_valid = False
+                    break
+            if is_valid:
+                valid_slots.append(slot)
+        
+        if len(valid_slots) == 0:
+            return empty_slots
+        
+        return valid_slots
+    
+    def spawn_npc(self):
+        valid_slots = self.get_valid_spawn_slots()
+        if not valid_slots:
+            return
+        
+        slot = random.choice(valid_slots)
+        order = self.get_random_order_for_act()
         npc = NPC(self.rand_type(), self.complexity, self.POS[slot], order)
         self.npcs[slot] = npc
         self.e['EntityGroups'].add(npc, group='npc')
@@ -155,13 +328,17 @@ class NPCPlacement(pp.ElementSingleton):
         order_display = OrderDisplay(order, self.GUI_POS[slot], z=100)
         npc.order_display = order_display
         self.e['EntityGroups'].add(order_display, group='ui')
-
-        jitter = random.uniform(-2.0, 2.0)
-        self.spawn_delay_time = self.base_spawn_delay - self.complexity + jitter
-        self.spawn_delay_time = max(4.0, self.spawn_delay_time)
         
     def feed(self, food_type, slot):
         if food_type == FoodTypes.PLATE: return
+        
+        if self.e['State'].act == 9:
+            if self.boss and self.boss.alive:
+                if self.boss.orders[slot] == food_type:
+                    self.boss.take_dmg(5, slot)
+                else:
+                    self.boss.take_dmg(1, slot)
+            return
         
         npc = self.npcs[slot]
 
@@ -173,8 +350,15 @@ class NPCPlacement(pp.ElementSingleton):
                     self.e['State'].gameplay_stop = True
                     self.e['State'].act += 1
                     
+                    for food in self.e['EntityGroups'].groups['food']:
+                        food.kill()
+                    
                 else:
                     self.e['State'].act = 'miss_dish'
+                                      
+                    for food in self.e['EntityGroups'].groups['food']:
+                        food.kill()
+
                     self.e['State'].act_complete = False
                     self.grandmother_spawned = False
                     self.e['State'].gameplay_stop = True
@@ -227,11 +411,29 @@ class NPCPlacement(pp.ElementSingleton):
         if act in [0, 1, 2] and not self.grandmother_spawned:
             self.spawn_grandmother()
         
-        if act == 3:
+        if act == 9:
+            if self.boss is None:
+                self.spawn_boss()
+            elif self.boss.alive:
+                self.boss.update(dt)
+            else:
+                if self.boss in self.e['EntityGroups'].groups['npc']:
+                    self.e['EntityGroups'].groups['npc'].remove(self.boss)
+                self.boss = None
+                self.e['State'].act_complete = True
+                self.e['State'].gameplay_stop = True
+                self.e['State'].act += 1
+                        
+                for food in self.e['EntityGroups'].groups['food']:
+                    food.kill()
+                    self.e['Game'].load_activities()
+                    self.e['NPCPlacement'].reset_all_npcs()
+        
+        if act in self.ACT_SPAWN_DELAYS:
             self.spawn_timer -= dt
             if self.spawn_timer <= 0:
                 self.spawn_npc()
-                self.spawn_timer = self.spawn_delay()
+                self.spawn_timer = self.get_act_spawn_delay()
 
         self.draw_timer(surf)
 

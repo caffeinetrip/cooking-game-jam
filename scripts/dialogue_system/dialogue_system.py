@@ -55,8 +55,16 @@ class DialogueSystem(pp.ElementSingleton):
         self.dialogue_data = dialogues_dict
     
     def start_dialogue(self, dialogue_id):
+    
         if dialogue_id not in self.dialogue_data:
             return
+                
+        if 'food' in self.e['EntityGroups'].groups:
+            for food in self.e['EntityGroups'].groups['food']:
+                food.kill()
+
+        self.e['Game'].load_activities()
+        self.e['NPCPlacement'].reset_all_npcs()
         
         if dialogue_id == 'miss_dish':
             self.char_speed = 0.1
@@ -107,7 +115,18 @@ class DialogueSystem(pp.ElementSingleton):
         self.current_character = None
         self.e['State'].gameplay_stop = False
         self.e['State'].show_hud = True
-    
+        
+        if isinstance(self.e['State'].act, int):
+            if self.e['State'].act == 4 or self.e['State'].act == 7: 
+                self.e['State'].act += 1
+                                            
+                                            
+                for food in self.e['EntityGroups'].groups['food']:
+                    food.kill()
+                    
+                self.e['Game'].load_activities()
+                self.e['NPCPlacement'].reset_all_npcs()
+                
     def skip_typing(self):
         self.current_text = self.full_text
         self.char_index = len(self.full_text)

@@ -69,9 +69,12 @@ class Food(pp.Entity):
             self.plate_item.kill()
             self.on_plate = False
         
-        if self in self.e['EntityGroups'].groups['food']:
-            self.e['EntityGroups'].groups['food'].remove(self)
-        
+        for name, group in self.e['EntityGroups'].groups.items():
+            
+            for item in group:
+                if item == self:
+                    self.e['EntityGroups'].groups[name].remove(self)
+                    
         del self
 
 
