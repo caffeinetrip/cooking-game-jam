@@ -34,7 +34,7 @@ class FoodTypes(Enum):
     PLATE = 'plate'
 
 class Food(pp.Entity):
-    def __init__(self, food_type: FoodTypes, pos, base_dmg=10, z=0, custom_id=None):
+    def __init__(self, food_type: FoodTypes, pos, base_dmg=5, z=0, custom_id=None):
         super().__init__(type=food_type.value, pos=pos, z=z)
         self.food_type = food_type
         self.base_dmg = base_dmg
@@ -49,15 +49,19 @@ class Food(pp.Entity):
         super().__init__(type=food_type, pos=pos, z=z)
     
     def damage(self):
+        
+        
         dmg = self.base_dmg
+        
         if random.random() < 0.2:
             dmg *= 2
+            
         return dmg
 
     def on_eat(self, eater):
         if self.food_type != FoodTypes.PLATE:
             damage = self.damage()
-            if eater.order == self.food_type: damage *= 2
+            if eater.order == self.food_type: damage *=3
             eater.take_dmg(damage)
         self.kill()
         

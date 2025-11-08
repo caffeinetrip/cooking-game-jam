@@ -11,6 +11,7 @@ class ActivitiesTypes(Enum):
     SLIME = 'slime'
     PLATES = 'plates'
     BAR_COUTER = 'bar_couter'
+    DAY = 'day'
 
 class Holder(pp.Element):
     def __init__(self, activity_type, size, pos, index=None, custom_id=None, singleton=False, register=False):

@@ -23,7 +23,7 @@ class NPC(pp.Entity):
         
         self.order = order
         
-        if random.randint(1,10) == 5:
+        if random.randint(1,15) == 5:
             self.health += 5
             
         self.timer = 10.0
@@ -34,7 +34,9 @@ class NPC(pp.Entity):
         self.killed = False
 
     def take_dmg(self, dmg):
+        
         self.health -= dmg
+        
         if self.health <= 0:
             self.timer = -1
             self.killed = True

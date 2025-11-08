@@ -21,7 +21,6 @@ class Game(pp.PygpenGame):
             sounds_path='data/sfx',
             caption='BLOOD PLATE SPECIAL',
             input_path='data/config/key_mappings_default.json',
-            font_path='data/fonts',
             fps_cap=60,
             opengl=True,
             frag_path='data/shaders/main.frag',
@@ -30,7 +29,7 @@ class Game(pp.PygpenGame):
         self.display = pygame.Surface(base_resolution, pygame.SRCALPHA)
         
         self.hud_surf = self.display.copy()
-        self.hud = HUD()
+        
         
         self.state = State()
         self.npc_placemant = NPCPlacement()
@@ -39,11 +38,15 @@ class Game(pp.PygpenGame):
         self.e['Assets'].load_folder('data/images/food', colorkey=(0, 0, 0), alpha=True)
         self.e['Assets'].load_folder('data/images/activities', colorkey=(0, 0, 0), alpha=True)
         
+        self.e['Text'].add_ttf('font', 'data/fonts/desert_v1/Desert 6.ttf', 16)
+        
         self.e['Renderer'].set_groups(['default', 'ui'])
         self.e['Window'].background_img = pygame.image.load('data/images/background/background.png')
         
         self.mpos = (0, 0)
         self.freeze_stack = []
+        
+        self.hud = HUD()
         
         self.noise_tex = self.e['MGL'].pg2tx(self.e['Assets'].images['misc']['noise'])
         self.noise_tex.repeat_x = True
@@ -72,8 +75,9 @@ class Game(pp.PygpenGame):
         self.plate_place = PlatePlace()
         self.plates = Plates()
         self.bar_couter = BarCouter()
+        self.day = Day()
 
-        self.e['EntityGroups'].add([self.storage, self.slime, self.grill, self.desk, self.plate_place, self.plates, self.bar_couter], group='activities')
+        self.e['EntityGroups'].add([self.storage, self.slime, self.grill, self.desk, self.plate_place, self.plates, self.bar_couter, self.day], group='activities')
 
     def update(self):
         self.hud_surf.fill((0, 0, 0, 0))

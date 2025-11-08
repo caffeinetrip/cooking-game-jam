@@ -6,3 +6,4 @@ from .storage import Storage
 from .trash_can import TrashCan
 from .plates import Plates
 from .bar_couter import BarCouter
+from .day import Day
