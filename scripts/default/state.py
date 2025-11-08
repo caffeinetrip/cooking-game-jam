@@ -24,6 +24,14 @@ class State(pp.ElementSingleton):
         self.points = 0
         self.time_speed = 100
         
+        self.scene = ""
+        
+        self.gameplay_stop = False
+        self.show_hud = True
+        self.dialogue = False
+        
+        self.dialogue_count = 0
+        
     def get_time_str(self):
         return f"0{self.dayt}day/07"
         
@@ -40,22 +48,25 @@ class State(pp.ElementSingleton):
         pass
         
     def update(self, dt):
-        if self.playable:
+        if self.playable and not self.gameplay_stop:
             self.time += dt * self.time_speed
             
             while self.time >= 1:
-                self.time -= 1
-                self.minute += 1
-                self.day = self.get_time_str()
                 
-                if self.minute >= 60:
-                    self.minute = 0
-                    self.hour += 1
+                if not self.gameplay_stop:
+                
+                    self.time -= 1
+                    self.minute += 1
+                    self.day = self.get_time_str()
                     
-                    if self.hour >= 24:
-                        self.hour = 0
-                        self.dayt += 1
+                    if self.minute >= 60:
+                        self.minute = 0
+                        self.hour += 1
                         
-                        if self.dayt > 7:
-                            self.dayt = 1
-                            self.week += 1
+                        if self.hour >= 24:
+                            self.hour = 0
+                            self.dayt += 1
+                            
+                            if self.dayt > 7:
+                                self.dayt = 1
+                                self.week += 1

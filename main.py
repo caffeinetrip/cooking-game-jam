@@ -7,6 +7,8 @@ from scripts.food.food import Food, FoodTypes
 from scripts.food.activities_objects import *
 from scripts.npc.npc import NPC, NPCPlacement
 from scripts.default.hud import HUD
+from scripts.dialogue_system.dialogue_system import DialogueCharacter, DialogueSystem
+from scripts.default.const import dialogues
 class Game(pp.PygpenGame):
     def load(self):
         base_resolution = (384, 216)
@@ -30,7 +32,6 @@ class Game(pp.PygpenGame):
         
         self.hud_surf = self.display.copy()
         
-        
         self.state = State()
         self.npc_placemant = NPCPlacement()
         
@@ -46,7 +47,12 @@ class Game(pp.PygpenGame):
         self.mpos = (0, 0)
         self.freeze_stack = []
         
+        self.dialogue_system = DialogueSystem()
+        self.dialogue_system.load_dialogues(dialogues)
+        
         self.hud = HUD()
+        
+        self.dialogue_system.start_dialogue('intro')
         
         self.noise_tex = self.e['MGL'].pg2tx(self.e['Assets'].images['misc']['noise'])
         self.noise_tex.repeat_x = True
@@ -88,7 +94,7 @@ class Game(pp.PygpenGame):
         self.e['Window'].dt = min(self.e['Window'].dt * dt_scale, 0.1)
 
         if self.e['Input'].pressed('fullscreen'):
-
+        
             if self.settings.fullscreen:
                 self.settings.update('fullscreen', 'disabled')
             else:
@@ -107,18 +113,24 @@ class Game(pp.PygpenGame):
         playable_area.y = (self.e['Window'].dimensions[1] - playable_area.height) / 2
         relative_mpos = ((self.e['Mouse'].pos[0] - playable_area.x) / playable_area.width, (self.e['Mouse'].pos[1] - playable_area.y) / playable_area.height)
         self.mpos = (relative_mpos[0] * self.display.get_width(), relative_mpos[1] * self.display.get_height())
-
+        
+        if not self.e['State'].gameplay_stop:
+            self.npc_placemant.update(self.e['Window'].dt, self.hud_surf)
+        
         self.camera.update()
         self.state.update(self.e['Window'].dt)
-        self.npc_placemant.update(self.e['Window'].dt, self.hud_surf)
-        
+                
         self.hud.render(self.hud_surf)
         
-        self.plate_place.update()
-        self.bar_couter.update()
-        self.slime.update()
-        self.desk.update(self.mpos)
-        self.grill.update(self.e['Window'].dt)
+        self.e['DialogueSystem'].update(self.e['Window'].dt)
+        self.e['DialogueSystem'].render(self.hud_surf)
+        
+        if not self.e['State'].gameplay_stop:
+            self.plate_place.update()
+            self.bar_couter.update()
+            self.slime.update()
+            self.desk.update(self.mpos)
+            self.grill.update(self.e['Window'].dt)
         
         for act in self.storage.slots + self.slime.slots + self.grill.slots + self.desk.slots + self.plate_place.slots + self.plates.slots + self.bar_couter.slots:
             act.update(self.mpos, self.e['Window'].dt)

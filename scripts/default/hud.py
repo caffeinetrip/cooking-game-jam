@@ -8,19 +8,16 @@ class HUD(pp.ElementSingleton):
         self.flash = 0
         self.swap_offset = 0
         
-        self.hide_ui = False
-        
+        self.e['DialogueSystem'].register_character('chef', 'data/images/hud/saya.png', (0, 0), 'right', (384, 216))
+        self.e['DialogueSystem'].register_character('akiko', 'data/images/hud/sen.png', (0, 0), 'left', (384, 216))
+                
         self.heart_hud = pygame.image.load('data/images/hud/heart.png')
         self.points_hud = pygame.image.load('data/images/hud/points.png')
         
         self.font = self.e['Text']['font']
-        
-    def update(self):
-        if self.e['Input'].pressed('hide_ui'):
-            self.hide_ui = not self.hide_ui
-            
+
     def render(self, surf):
-        if not self.hide_ui:
+        if self.e['State'].show_hud:
             self.swap_offset += -self.swap_offset * self.e['Window'].dt * 10
             if self.swap_offset < 0.5:
                 self.swap_offset = 0

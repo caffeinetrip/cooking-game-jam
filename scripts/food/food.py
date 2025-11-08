@@ -50,7 +50,6 @@ class Food(pp.Entity):
     
     def damage(self):
         
-        
         dmg = self.base_dmg
         
         if random.random() < 0.2:

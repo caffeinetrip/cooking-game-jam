@@ -51,12 +51,7 @@ class Text(ElementSingleton):
             self.fonts[font].double_link = doubled_font
     
     def add_ttf(self, name, path, size=16):
-        """Добавить TTF шрифт
-        Args:
-            name: имя для доступа к шрифту
-            path: путь к .ttf файлу
-            size: размер шрифта
-        """
+
         self.fonts[name] = TTFFont(path, size)
         return self.fonts[name]
         
@@ -81,7 +76,7 @@ class PreppedText:
         return ('<PreppedText:' + str(self.width) + 'x' + str(self.height) + '> ' + self.text).replace('\n', '\\n')
 
 class TTFFont(Element):
-    """TTF шрифт с тем же интерфейсом что и пиксельный Font"""
+
     def __init__(self, path, size=16, color=(255, 255, 255)):
         super().__init__()
         self.path = path
@@ -93,11 +88,11 @@ class TTFFont(Element):
         self.double_link = None
         
     def width(self, text):
-        """Возвращает ширину текста в пикселях"""
+
         return self.font.size(text)[0]
     
     def prep_text(self, text, line_width=0):
-        """Подготовить текст с переносом строк"""
+
         if not line_width:
             size = self.font.size(text)
             return PreppedText(text, size, self)
@@ -132,12 +127,12 @@ class TTFFont(Element):
         return PreppedText(processed_text.rstrip(), (max_width, height), self)
     
     def renderz(self, text, loc, line_width=0, color=None, offset=(0, 0), group='default', z=0):
-        """Рендер с z-индексом"""
+
         self.render(self.e['Renderer'], text, (loc[0] - offset[0], loc[1] - offset[1]), 
                    line_width=line_width, color=color, blit_kwargs={'group': group, 'z': z})
     
     def renderzb(self, text, loc, line_width=0, color=None, bgcolor=(0, 0, 0), offset=(0, 0), group='default', z=0):
-        """Рендер с обводкой"""
+
         if not color:
             color = self.base_color
         # Рендерим обводку
@@ -148,16 +143,14 @@ class TTFFont(Element):
         self.renderz(text, loc, line_width=line_width, color=color, offset=offset, group=group, z=z)
     
     def render(self, surf, text, loc, line_width=0, color=None, blit_kwargs={}):
-        """Основной рендер"""
+
         if not color:
             color = self.base_color
         
-        # Обработка переноса строк
         if line_width > 0:
             prepped = self.prep_text(text, line_width)
             text = prepped.text
-        
-        # Рендер построчно
+    
         y_offset = 0
         for line in text.split('\n'):
             if line:  # Пропускаем пустые строки
