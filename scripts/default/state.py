@@ -30,7 +30,10 @@ class State(pp.ElementSingleton):
         self.show_hud = True
         self.dialogue = False
         
-        self.dialogue_count = 0
+        self.dialogue_count = 1
+        
+        self.act = 0
+        self.act_complete = False
         
     def get_time_str(self):
         return f"0{self.dayt}day/07"
@@ -48,6 +51,16 @@ class State(pp.ElementSingleton):
         pass
         
     def update(self, dt):
+
+        
+        if self.act < 3:
+            self.show_hud = False
+        
+        if self.act_complete:
+            self.gameplay_stop = True
+            self.e['EntityGroups'].groups['food'] = []
+            self.act_complete = False
+        
         if self.playable and not self.gameplay_stop:
             self.time += dt * self.time_speed
             

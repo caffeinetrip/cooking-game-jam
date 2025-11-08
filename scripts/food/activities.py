@@ -81,8 +81,13 @@ class Holder(pp.Element):
 
     def eat(self, npc):
 
-        for item in self.item:
-            item.on_eat(npc)
+        if self.e['State'].act < 3:
+            for item in self.item:
+                self.e['NPCPlacement'].feed(item.food_type, self.index)
+            
+        else:
+            for item in self.item:
+                item.on_eat(npc)
                 
         self.item = []
         self.held = False

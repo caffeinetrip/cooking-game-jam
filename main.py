@@ -33,6 +33,7 @@ class Game(pp.PygpenGame):
         self.hud_surf = self.display.copy()
         
         self.state = State()
+        
         self.npc_placemant = NPCPlacement()
         
         self.e['Assets'].load_folder('data/images/misc', colorkey=(0, 0, 0), alpha=True)
@@ -46,13 +47,11 @@ class Game(pp.PygpenGame):
         
         self.mpos = (0, 0)
         self.freeze_stack = []
-        
+
         self.dialogue_system = DialogueSystem()
         self.dialogue_system.load_dialogues(dialogues)
         
         self.hud = HUD()
-        
-        self.dialogue_system.start_dialogue('intro')
         
         self.noise_tex = self.e['MGL'].pg2tx(self.e['Assets'].images['misc']['noise'])
         self.noise_tex.repeat_x = True

@@ -23,6 +23,9 @@ class DialogueSystem(pp.ElementSingleton):
         self.char_timer = 0
         self.char_speed = 0.03
         self.text_finished = False
+        self.auto_advance = False
+        self.auto_advance_delay = 0.25
+        self.auto_advance_timer = 0
         
         self.punctuation_pause = {
             '.': 0.15,
@@ -55,6 +58,10 @@ class DialogueSystem(pp.ElementSingleton):
         if dialogue_id not in self.dialogue_data:
             return
         
+        if dialogue_id == 'miss_dish':
+            self.char_speed = 0.1
+        else: self.char_speed = 0.03
+        
         language = self.e['Settings'].language
         self.current_dialogue = self.dialogue_data[dialogue_id][language]
         self.current_index = 0
@@ -72,6 +79,10 @@ class DialogueSystem(pp.ElementSingleton):
         character_id, text = self.current_dialogue[self.current_index]
         self.current_character = self.characters.get(character_id, None)
         
+        self.auto_advance = text.startswith('*')
+        if self.auto_advance:
+            text = text[1:]
+        
         if self.font and self.current_character:
             line_width = 149 if self.current_character.p == 'left' else 147
             prepped = self.font.prep_text(text, line_width=line_width)
@@ -83,6 +94,7 @@ class DialogueSystem(pp.ElementSingleton):
         self.char_index = 0
         self.text_finished = False
         self.char_timer = 0
+        self.auto_advance_timer = 0
     
     def stop_dialogue(self):
         self.active = False
@@ -149,6 +161,11 @@ class DialogueSystem(pp.ElementSingleton):
                         break
                 else:
                     break
+        
+        if self.text_finished and self.auto_advance:
+            self.auto_advance_timer += dt
+            if self.auto_advance_timer >= self.auto_advance_delay:
+                self.next_line()
     
     def render(self, surf):
         if not self.active or not self.current_character:
