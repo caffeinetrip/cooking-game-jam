@@ -10,11 +10,11 @@ class Storage(pp.Entity):
         self.heart_slot = None
         
         self.slots = [
-            Generator(ActivitiesTypes.STORAGE, size=(42,17), pos=(19,156), food_type=FoodTypes.MEAT),
-            Generator(ActivitiesTypes.STORAGE, size=(42,17), pos=(19,177), food_type=FoodTypes.EYE),
-            Generator(ActivitiesTypes.STORAGE, size=(42,17), pos=(19,198), food_type=FoodTypes.BRAIN),
+            Generator(ActivitiesTypes.STORAGE, size=(42,17), pos=(19,151), food_type=FoodTypes.MEAT),
+            Generator(ActivitiesTypes.STORAGE, size=(42,17), pos=(19,172), food_type=FoodTypes.EYE),
+            Generator(ActivitiesTypes.STORAGE, size=(42,17), pos=(19,193), food_type=FoodTypes.BRAIN),
         ]
     
     def add_heart_slot(self):
-        heart_slot = Generator(ActivitiesTypes.STORAGE, size=(42,17), pos=(19,135), food_type=FoodTypes.HEART)
+        heart_slot = Generator(ActivitiesTypes.STORAGE, size=(42,17), pos=(19,130), food_type=FoodTypes.HEART)
         self.slots.insert(0, heart_slot)

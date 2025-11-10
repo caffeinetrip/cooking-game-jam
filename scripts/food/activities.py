@@ -80,11 +80,13 @@ class Holder(pp.Element):
         return True
 
     def eat(self, npc):
-
-        if self.e['State'].act < 3:
+        if isinstance(self.e['State'].act, int) and self.e['State'].act == 10:
+            for item in self.item:
+                if item.food_type != FoodTypes.PLATE:
+                    self.e['NPCPlacement'].feed(item.food_type, self.index)
+        elif self.e['State'].act < 3:
             for item in self.item:
                 self.e['NPCPlacement'].feed(item.food_type, self.index)
-            
         else:
             for item in self.item:
                 item.on_eat(npc)
@@ -182,65 +184,69 @@ class Holder(pp.Element):
         target = None
         is_plate_with_food = len(self.item) == 2
 
-        if len(self.item) > 0 and self.item[0].food_type == FoodTypes.PLATE:
-            for slot in self.e['Game'].plate_place.slots:
-                if slot.rect.collidepoint(mpos):
-                    if len(slot.item) == 0:
-                        target = slot
-                        break
+        bar_extended_hitbox = pygame.Rect(83, 95, 208, 45)
+        if bar_extended_hitbox.collidepoint(mpos):
+            slot_index = int(min(5, max(0, (mpos[0] - 87) // 40)))
             
-            if is_plate_with_food:
-                for slot in self.e['Game'].bar_couter.slots:
+            slot = self.e['Game'].bar_couter.slots[slot_index]
+            if len(slot.item) == 0 and (is_plate_with_food or len(self.item) > 0 and self.item[0].food_type == FoodTypes.PLATE):
+                target = slot
+
+        if not target:
+            if len(self.item) > 0 and self.item[0].food_type == FoodTypes.PLATE:
+                for slot in self.e['Game'].plate_place.slots:
                     if slot.rect.collidepoint(mpos):
                         if len(slot.item) == 0:
                             target = slot
                             break
+            else:
+                for acts in [self.e['Game'].desk.slots, self.e['Game'].grill.slots, self.e['Game'].slime.slots]:
+                    for slot in acts:
+                        if slot.rect.collidepoint(mpos):
+                            if len(slot.item) == 0:
+                                target = slot
+                                break
+                    if target:
+                        break
+
+                if not target:
+                    desk_hitbox = pygame.Rect(135, 148, 60, 80)
+                    if desk_hitbox.collidepoint(mpos):
+                        for slot in self.e['Game'].desk.slots:
+                            if len(slot.item) == 0:
+                                target = slot
+                                break
                     
-        else:
-
-            for acts in [self.e['Game'].desk.slots, self.e['Game'].grill.slots, self.e['Game'].slime.slots]:
-                for slot in acts:
-                    if slot.rect.collidepoint(mpos):
-                        if len(slot.item) == 0:
-                            target = slot
-                            break
-                if target:
-                    break
-
-            if not target:
-
-                desk_hitbox = pygame.Rect(135, 148, 60, 80)
-                if desk_hitbox.collidepoint(mpos):
-                    for slot in self.e['Game'].desk.slots:
-                        if len(slot.item) == 0:
-                            target = slot
-                            break
-                
-                if not target:
-                    grill_hitbox = pygame.Rect(200, 148, 60, 80)
-                    if grill_hitbox.collidepoint(mpos):
-                        for slot in self.e['Game'].grill.slots:
-                            if len(slot.item) == 0:
-                                target = slot
-                                break
-                
-                if not target:
-                    slime_hitbox = pygame.Rect(70, 148, 60, 80)
-                    if slime_hitbox.collidepoint(mpos):
-                        for slot in self.e['Game'].slime.slots:
-                            if len(slot.item) == 0:
-                                target = slot
-                                break
-                
-                if not target:
-                    plate_place_hitbox = pygame.Rect(265, 150, 60, 80)
-                    if plate_place_hitbox.collidepoint(mpos):
-                        for slot in self.e['Game'].plate_place.slots:
-                            if len(slot.item) == 1 and slot.item[0].food_type == FoodTypes.PLATE:
-                                target = slot
-                                break
+                    if not target:
+                        grill_hitbox = pygame.Rect(200, 148, 60, 80)
+                        if grill_hitbox.collidepoint(mpos):
+                            for slot in self.e['Game'].grill.slots:
+                                if len(slot.item) == 0:
+                                    target = slot
+                                    break
+                    
+                    if not target:
+                        slime_hitbox = pygame.Rect(70, 148, 60, 80)
+                        if slime_hitbox.collidepoint(mpos):
+                            for slot in self.e['Game'].slime.slots:
+                                if len(slot.item) == 0:
+                                    target = slot
+                                    break
+                    
+                    if not target:
+                        plate_place_hitbox = pygame.Rect(265, 150, 60, 80)
+                        if plate_place_hitbox.collidepoint(mpos):
+                            for slot in self.e['Game'].plate_place.slots:
+                                if len(slot.item) == 1 and slot.item[0].food_type == FoodTypes.PLATE:
+                                    target = slot
+                                    break
         
-        if not target or (target.activity_type == ActivitiesTypes.BAR_COUTER and not self.e['NPCPlacement'].chek(target.index)):
+        boss_feeding = False
+        if isinstance(self.e['State'].act, int) and self.e['State'].act == 10:
+            if target and target.activity_type == ActivitiesTypes.BAR_COUTER:
+                boss_feeding = True
+        
+        if not target or (target.activity_type == ActivitiesTypes.BAR_COUTER and not boss_feeding and not self.e['NPCPlacement'].chek(target.index)):
             if self.last_holder:
                 if is_plate_with_food:
                     plate, food = self.give_plate_with_food()
@@ -270,9 +276,13 @@ class Holder(pp.Element):
                 self.last_holder = target
                 
             elif target.activity_type == ActivitiesTypes.BAR_COUTER:
-                plate, food = self.give_plate_with_food()
-                target.get_item(plate)
-                target.get_food_on_plate(food)
+                if is_plate_with_food:
+                    plate, food = self.give_plate_with_food()
+                    target.get_item(plate)
+                    target.get_food_on_plate(food)
+                else:
+                    item = self.give_item()
+                    target.get_item(item)
 
             else:
                 if is_plate_with_food:
@@ -293,16 +303,20 @@ class Holder(pp.Element):
     def update(self, mpos, dt):
 
         if self.activity_type == ActivitiesTypes.BAR_COUTER and len(self.item) > 0:
-            self.remover_animation_speed -= dt
-            
-            if self.e['NPCPlacement'].time(self.index):
-                self.remover_animation_speed = 0
-                    
-            if self.remover_animation_speed <= 0:
-                self.eat(self.e['NPCPlacement'].chek(self.index))
-                self.remover_animation_speed = 2
+            if isinstance(self.e['State'].act, int) and self.e['State'].act == 10:
+                self.remover_animation_speed -= dt
+                if self.remover_animation_speed <= 0:
+                    self.eat(None)
+                    self.remover_animation_speed = 2
+            elif self.e['NPCPlacement'].chek(self.index):
+                self.remover_animation_speed -= dt
                 
-
+                if self.e['NPCPlacement'].time(self.index):
+                    self.remover_animation_speed = 0
+                        
+                if self.remover_animation_speed <= 0:
+                    self.eat(self.e['NPCPlacement'].chek(self.index))
+                    self.remover_animation_speed = 2
             
             return False
         
@@ -364,15 +378,46 @@ class Generator(Holder):
         target = None
         is_food = self.item[0].food_type != FoodTypes.PLATE
         
+        if not is_food:
+            for slot in self.e['Game'].plate_place.slots:
+                if len(slot.item) == 0:
+                    target = slot
+                    break
 
         if is_food:
-            
             for acts in [self.e['Game'].desk.slots, self.e['Game'].grill.slots, self.e['Game'].slime.slots]:
                 for slot in acts:
                     if slot.rect.collidepoint(mpos):
                         if len(slot.item) == 0:
                             target = slot
                             break
+                if target:
+                    break
+            
+            # Check activity hitboxes if no direct hit
+            if not target:
+                desk_hitbox = pygame.Rect(135, 148, 60, 80)
+                if desk_hitbox.collidepoint(mpos):
+                    for slot in self.e['Game'].desk.slots:
+                        if len(slot.item) == 0:
+                            target = slot
+                            break
+                
+                if not target:
+                    grill_hitbox = pygame.Rect(200, 148, 60, 80)
+                    if grill_hitbox.collidepoint(mpos):
+                        for slot in self.e['Game'].grill.slots:
+                            if len(slot.item) == 0:
+                                target = slot
+                                break
+                
+                if not target:
+                    slime_hitbox = pygame.Rect(70, 148, 60, 80)
+                    if slime_hitbox.collidepoint(mpos):
+                        for slot in self.e['Game'].slime.slots:
+                            if len(slot.item) == 0:
+                                target = slot
+                                break
             
             if not target:
                 for slot in self.e['Game'].plate_place.slots:
@@ -380,12 +425,6 @@ class Generator(Holder):
                         if len(slot.item) == 1 and slot.item[0].food_type == FoodTypes.PLATE:
                             target = slot
                             break
-        else:
-            for slot in self.e['Game'].plate_place.slots:
-                if slot.rect.collidepoint(mpos):
-                    if len(slot.item) == 0:
-                        target = slot
-                        break
 
         if target:
             if self.e['EntityGroups'].groups['food'] != []:
@@ -401,6 +440,9 @@ class Generator(Holder):
         self.item = []
 
     def update(self, mpos, dt):
+        if self.e['State'].gameplay_stop:
+            return False
+        
         if not self.rect.collidepoint(mpos):
             if self.held and not self.e['Input'].holding('left_click'):
                 self.drop_item(mpos)

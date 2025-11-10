@@ -15,6 +15,11 @@ class Desk(pp.Entity):
     
     def update(self, mpos):
         if self.e['Input'].pressed('right_click'):
+            
+            # Check if player has knife (only available after Act 4)
+            if not self.e['State'].has_knife:
+                self.e['HUD'].show_knife_warning()
+                return
                 
             for slot in self.slots:
                 if slot.rect.collidepoint(mpos) and len(slot.item) == 1:

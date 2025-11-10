@@ -34,13 +34,14 @@ class Game(pp.PygpenGame):
         self.ui_surf = self.display.copy()
         
         self.state = State()
-        self.npc_placemant = NPCPlacement()
+        
         
         self.e['Assets'].load_folder('data/images/misc', colorkey=(0, 0, 0), alpha=True)
         self.e['Assets'].load_folder('data/images/food', colorkey=(0, 0, 0), alpha=True)
         self.e['Assets'].load_folder('data/images/activities', colorkey=(0, 0, 0), alpha=True)
         
         self.e['Text'].add_ttf('font', 'data/fonts/desert_v1/Desert 6.ttf', 16)
+        self.e['Text'].add_ttf('small_font', 'data/fonts/desert_v1/Desert 6.ttf', 14)
         
         self.e['Renderer'].set_groups(['default', 'ui'])
         self.e['Window'].background_img = pygame.image.load('data/images/background/background.png')
@@ -68,6 +69,8 @@ class Game(pp.PygpenGame):
         self.camera = pp.Camera(base_resolution, slowness=0.2)
         
         self.restart()
+        
+        self.npc_placemant = NPCPlacement()
 
     def restart(self):
         self.e['EntityDB'].load('data/images/food')
@@ -85,7 +88,10 @@ class Game(pp.PygpenGame):
         self.plates = Plates()
         self.bar_couter = BarCouter()
         self.day = Day()
-
+        
+        if self.e['State'].has_heart:
+            self.storage.add_heart_slot()
+            
         self.e['EntityGroups'].add([self.storage, self.slime, self.grill, self.desk, self.plate_place, self.plates, self.bar_couter, self.day], group='activities')
 
     def update(self):

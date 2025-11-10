@@ -74,11 +74,6 @@ class DialogueSystem(pp.ElementSingleton):
     def start_dialogue(self, dialogue_id):
         if dialogue_id not in self.dialogue_data:
             return
-                
-        for group_name, group in self.e['EntityGroups'].groups.items():
-            for item in list(group):
-                if hasattr(item, 'food_type'):
-                    item.kill()
 
         self.e['Game'].load_activities()
         self.e['NPCPlacement'].reset_all_npcs()
@@ -152,33 +147,59 @@ class DialogueSystem(pp.ElementSingleton):
             self.e['State'].gameplay_stop = False
             self.e['State'].show_hud = True
             
-            if isinstance(self.e['State'].act, int):
-                if self.e['State'].act == 4:
-                    self.e['State'].act = 5
-                    self.e['State'].dayt = 1
-                    self.e['State'].week = 1
+            if dialogue_id == 'kazu_knife':
+                self.e['State'].has_knife = True
+                self.e['State'].act = 5
+                self.e['State'].dayt = 1
+                self.e['State'].week = 2
+                
+                for group_name, group in self.e['EntityGroups'].groups.items():
+                    for item in list(group):
+                        if hasattr(item, 'food_type'):
+                            item.kill()
                     
-                    for group_name, group in self.e['EntityGroups'].groups.items():
-                        for item in list(group):
-                            if hasattr(item, 'food_type'):
-                                item.kill()
-                        
-                    self.e['Game'].load_activities()
-                    self.e['NPCPlacement'].reset_all_npcs()
-                    self.e['NPCPlacement'].stop_spawning = False
+                self.e['Game'].load_activities()
+                self.e['NPCPlacement'].reset_all_npcs()
+                self.e['NPCPlacement'].stop_spawning = False
+                
+            elif dialogue_id == 'yuki_heart':
+                for group_name, group in self.e['EntityGroups'].groups.items():
+                    for item in list(group):
+                        if hasattr(item, 'food_type'):
+                            item.kill()
                     
+                self.e['Game'].load_activities()
+                self.e['NPCPlacement'].reset_all_npcs()
+                self.e['NPCPlacement'].stop_spawning = False
+                
+                
+            elif dialogue_id == 'act7':
+                self.e['State'].act = 8
+                self.e['State'].dayt = 1
+                self.e['State'].week = 3
+                
+                for group_name, group in self.e['EntityGroups'].groups.items():
+                    for item in list(group):
+                        if hasattr(item, 'food_type'):
+                            item.kill()
                     
-                elif self.e['State'].act == 7:
-                    self.e['State'].act = 8
+                self.e['Game'].load_activities()
+                self.e['NPCPlacement'].reset_all_npcs()
+                self.e['NPCPlacement'].stop_spawning = False
+                
+            elif dialogue_id == 'act10':
+                self.e['State'].act = 10
+                self.e['State'].dayt = 1
+                self.e['State'].week = 4
+                
+                for group_name, group in self.e['EntityGroups'].groups.items():
+                    for item in list(group):
+                        if hasattr(item, 'food_type'):
+                            item.kill()
                     
-                    for group_name, group in self.e['EntityGroups'].groups.items():
-                        for item in list(group):
-                            if hasattr(item, 'food_type'):
-                                item.kill()
-                        
-                    self.e['Game'].load_activities()
-                    self.e['NPCPlacement'].reset_all_npcs()
-                    self.e['NPCPlacement'].stop_spawning = False
+                self.e['Game'].load_activities()
+                self.e['NPCPlacement'].reset_all_npcs()
+                self.e['NPCPlacement'].stop_spawning = False
         
         self.e['Transition'].transition(_stop)
                 

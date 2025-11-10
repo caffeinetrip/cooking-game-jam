@@ -25,6 +25,7 @@ class HUD(pp.ElementSingleton):
             self.hearts_unlocked_img = None
         
         self.font = self.e['Text']['font']
+        self.small_font = self.e['Text']['small_font']
         
         self.buff_boxes = [
             pygame.Rect(42, 58, 90, 140),
@@ -47,6 +48,9 @@ class HUD(pp.ElementSingleton):
         self.knife_warning_text = ""
         self.knife_warning_alpha = 0
         self.knife_warning_timer = 0.0
+        
+        self.end_game_timer = 0.0
+        self.end_game_text = ""
         
     def show_knife_warning(self):
         language = self.e['Settings'].language
@@ -118,7 +122,33 @@ class HUD(pp.ElementSingleton):
                 break
     
     def render(self, surf, ui_surf):
+
+        if self.e['State'].game_complete:
+            surf.fill((0, 0, 0))
+            
+            if not self.end_game_text:
+                language = self.e['Settings'].language
+                if language == 'russian':
+                    self.end_game_text = "СПАСИБО ЗА ИГРУ"
+                else:
+                    self.end_game_text = "THANKS FOR PLAYING"
+            
+            text_width = self.font.width(self.end_game_text)
+            x = (surf.get_width() - text_width) // 2
+            y = surf.get_height() // 2
+            self.font.render(surf, self.end_game_text, (x, y), color=(255, 255, 255))
+            
+            subtitle = "GAME CREATED BY SOMA" if self.e['Settings'].language == 'english' else "ИГРУ СОЗДАЛ SOMA"
+            subtitle_width = self.font.width(subtitle)
+            self.font.render(surf, subtitle, ((surf.get_width() - subtitle_width) // 2, y + 30), color=(200, 200, 200))
+            
+            if self.e['Input'].pressed('left_click'):
+                import sys
+                sys.exit()
+            return
+            
         if self.e['State'].game_over:
+            
             surf.fill((0, 0, 0))
             
             if not self.game_over_text:
@@ -135,19 +165,11 @@ class HUD(pp.ElementSingleton):
             self.font.render(surf, restart_text, ((surf.get_width() - restart_width) // 2, y + 20), color=(200, 200, 200))
             
             if self.e['Input'].pressed('left_click'):
-                self.e['State'].health = 7
-                self.e['State'].game_over = False
-                self.e['State'].act = 3
-                self.e['State'].week = 1
-                self.e['State'].dayt = 0
-                self.e['State'].time = 0
-                self.e['State'].points = 0
-                self.e['State'].gameplay_stop = False
-                self.e['State'].show_hud = True
+                
+
+                self.e['State'].restart_from_death()
                 self.game_over_text = ""
                 
-                for food in self.e['EntityGroups'].groups['food']:
-                    food.kill()
                 self.e['Game'].load_activities()
                 self.e['NPCPlacement'].reset_all_npcs()
                 self.e['NPCPlacement'].stop_spawning = False
@@ -181,7 +203,7 @@ class HUD(pp.ElementSingleton):
         
         if self.e['State'].show_buff_selection:
             if not self.buff_selection_freeze:
-                for food in self.e['EntityGroups'].groups['food']:
+                for food in self.e['EntityGroups'].groups.get('food', []):
                     food.kill()
                 self.e['NPCPlacement'].reset_all_npcs()
 
@@ -221,9 +243,8 @@ class HUD(pp.ElementSingleton):
                             
                             self.buff_selection_freeze = True
                             
-                            
                             if self.e['State'].act == 4:
-                                
+
                                 self.e['Transition'].transition(lambda: (
                                     self.e['State'].__setattr__('show_buff_selection', False),
                                     self.e['State'].__setattr__('gameplay_stop', False),
@@ -235,7 +256,26 @@ class HUD(pp.ElementSingleton):
                                     self.e['DialogueSystem'].start_dialogue('kazu_knife')
                                 ))
                             
+                            elif self.e['State'].act == 6:
+
+                                self.e['Transition'].transition(lambda: (
+                                    self.e['State'].__setattr__('show_buff_selection', False),
+                                    setattr(self, 'buff_selection_freeze', False),
+                                    setattr(self, 'current_buff_options', []),
+                                    self.e['DialogueSystem'].start_dialogue('act7')
+                                ))
+                                
+                            elif self.e['State'].act == 9:
+
+                                self.e['Transition'].transition(lambda: (
+                                    self.e['State'].__setattr__('show_buff_selection', False),
+                                    setattr(self, 'buff_selection_freeze', False),
+                                    setattr(self, 'current_buff_options', []),
+                                    self.e['DialogueSystem'].start_dialogue('act10')
+                                ))
+                            
                             else:
+
                                 self.e['Transition'].transition(lambda: (
                                     self.e['State'].__setattr__('show_buff_selection', False),
                                     self.e['State'].__setattr__('gameplay_stop', False),
@@ -296,10 +336,7 @@ class HUD(pp.ElementSingleton):
         elif self.e['State'].act == 3 and self.e['State'].dialogue_count == 3:
             self.e['Transition'].transition(lambda: self.e['DialogueSystem'].start_dialogue('guide_complete'))
             self.e['State'].dialogue_count += 1
-            
-        elif self.e['State'].act == 4 and self.e['State'].dialogue_count == 4:
-
-            self.e['State'].dialogue_count += 1
+            self.e['State'].dayt = 1
             
         elif self.e['State'].act == 'miss_dish':
             self.e['Transition'].transition(lambda: (
@@ -314,13 +351,14 @@ class HUD(pp.ElementSingleton):
                 self.swap_offset = 0
                 
             for i in range(self.e['State'].health):
-                surf.blit(self.heart_hud, (2 + (i*7), 2))
+                surf.blit(self.heart_hud, (6 + (i*7), 4))
                 
             for i in range(self.e['State'].points):
                 surf.blit(self.points_hud, (370, 2 + (i*7)))
                 
-            self.font.render(surf, f'Week: {self.e['State'].week}', (180, 5), color=(255, 255, 255))
-            self.font.render(surf, f'{self.e['State'].day}', (340, 120), color=(255, 255, 255))
+            self.font.render(surf, f'Week: {self.e['State'].week}', (180, 3), color=(255, 5, 5))
+            self.small_font.render(surf, f'{4-self.e['State'].week} weeks until boss', (160, 14), color=(160, 0, 0))
+            self.font.render(surf, f'{self.e['State'].day}', (302, 71), color=(180, 5, 5))
             
             if self.e['State'].has_heart and self.hearts_unlocked_img:
                 ui_surf.blit(self.hearts_unlocked_img, (14, 125))
@@ -334,6 +372,9 @@ class HUD(pp.ElementSingleton):
             warning_surf.set_alpha(self.knife_warning_alpha)
             
             text_width = self.font.width(self.knife_warning_text)
-            self.font.render(warning_surf, self.knife_warning_text, (100 - text_width // 2, 5), color=(255, 100, 100))
+            self.font.render(warning_surf, self.knife_warning_text, (100 - text_width // 2, 5), color=(255, 10, 10))
             
-            surf.blit(warning_surf, (136, 145))
+            warning_surf.set_colorkey((0,0,0))
+            
+            surf.blit(warning_surf, (85, 130))
+    

@@ -153,7 +153,7 @@ class TTFFont(Element):
     
         y_offset = 0
         for line in text.split('\n'):
-            if line:  # Пропускаем пустые строки
+            if line: 
                 text_surf = self.font.render(line, True, color)
                 surf.blit(text_surf, (loc[0], loc[1] + y_offset), **blit_kwargs)
             y_offset += self.line_height + self.line_spacing

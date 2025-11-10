@@ -10,7 +10,6 @@ class BarCouter(pp.Entity):
             Holder(ActivitiesTypes.BAR_COUTER, size=(20,20), pos=(167, 115), index=2),
             Holder(ActivitiesTypes.BAR_COUTER, size=(20,20), pos=(207, 115), index=3),
             Holder(ActivitiesTypes.BAR_COUTER, size=(20,20), pos=(247, 115), index=4),
-            Holder(ActivitiesTypes.BAR_COUTER, size=(20,20), pos=(287, 115), index=5)
         ]
     
     def update(self):
