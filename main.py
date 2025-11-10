@@ -165,8 +165,9 @@ class Game(pp.PygpenGame):
                             item.pos = [self.mpos[0]-16, self.mpos[1]-16]
                             item.render(self.display, offset=self.camera)
 
-        self.transition.update()
-        self.transition.render()
+        if not self.e['State'].h_scene:
+            self.transition.update()
+            self.transition.render()
 
         self.e['Renderer'].cycle({'default': self.display, 'ui': self.hud_surf, 'hud': self.ui_surf})
         

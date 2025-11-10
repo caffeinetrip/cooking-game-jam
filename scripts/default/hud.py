@@ -123,7 +123,10 @@ class HUD(pp.ElementSingleton):
     
     def render(self, surf, ui_surf):
 
-        if self.e['State'].game_complete:
+        if self.e['State'].has_heart and self.hearts_unlocked_img:
+            surf.blit(self.hearts_unlocked_img, (20,138))
+
+        if self.e['State'].h_scene:
             surf.fill((0, 0, 0))
             
             if not self.end_game_text:
@@ -148,8 +151,14 @@ class HUD(pp.ElementSingleton):
             return
             
         if self.e['State'].game_over:
-            
+            self.e['NPCPlacement'].reset_all_npcs()
+            for group_name, group in self.e['EntityGroups'].groups.items():
+                for item in list(group):
+                    if hasattr(item, 'food_type'):
+                        item.kill()
+                        
             surf.fill((0, 0, 0))
+            
             
             if not self.game_over_text:
                 language = self.e['Settings'].language
@@ -337,6 +346,7 @@ class HUD(pp.ElementSingleton):
             self.e['Transition'].transition(lambda: self.e['DialogueSystem'].start_dialogue('guide_complete'))
             self.e['State'].dialogue_count += 1
             self.e['State'].dayt = 1
+            self.e['State'].week = 1
             
         elif self.e['State'].act == 'miss_dish':
             self.e['Transition'].transition(lambda: (
@@ -359,9 +369,6 @@ class HUD(pp.ElementSingleton):
             self.font.render(surf, f'Week: {self.e['State'].week}', (180, 3), color=(255, 5, 5))
             self.small_font.render(surf, f'{4-self.e['State'].week} weeks until boss', (160, 14), color=(160, 0, 0))
             self.font.render(surf, f'{self.e['State'].day}', (302, 71), color=(180, 5, 5))
-            
-            if self.e['State'].has_heart and self.hearts_unlocked_img:
-                ui_surf.blit(self.hearts_unlocked_img, (14, 125))
         
         if self.knife_warning_timer > 0:
             self.knife_warning_timer -= self.e['Window'].dt

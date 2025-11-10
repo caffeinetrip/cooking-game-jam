@@ -554,7 +554,7 @@ dialogues = {
     },
     
     'creator': {
-        'russian': 'GAME CREATED BY SOMA',
+        'russian': 'GAME CREATED BY SOMA    ',
         'english': 'GAME CREATED BY SOMA'
     }
 }

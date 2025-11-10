@@ -14,7 +14,7 @@ class State(pp.ElementSingleton):
         self.reset()
         self.playable = True
         self.kill_streak = 0
-        self.health = 1
+        self.health = 5
         self.base_health = 1 
         self.time = 0
         self.week = 1   
@@ -61,6 +61,8 @@ class State(pp.ElementSingleton):
         self.game_complete = False
 
         self.grandmother_order_completed = {0: False, 1: False, 2: False}
+        
+        self.h_scene = False
 
         
     def get_time_str(self):
@@ -126,6 +128,16 @@ class State(pp.ElementSingleton):
     
     def update(self, dt):
         
+        if self.h_scene:
+            self.e['NPCPlacement'].reset_all_npcs()
+            self.e['Game'].load_activities()
+            self.e['NPCPlacement'].stop_spawning = True
+            
+            for group_name, group in self.e['EntityGroups'].groups.items():
+                for item in list(group):
+                    if hasattr(item, 'food_type'):
+                        item.kill()
+        
         if self.health <= 0 and not self.game_over:
             self.game_over = True
             self.gameplay_stop = True
@@ -162,7 +174,7 @@ class State(pp.ElementSingleton):
     
         if self.heart_unlock_pending:
             if isinstance(self.act, int) and self.act == 5:  
-                if self.week == 2 and self.dayt == 4:
+                if self.week == 2 and self.dayt >= 4:
                     self.npc_spawn_pause_timer = 5
                     if self.check_all_npcs_dead():
                         self.heart_unlock_pending = False

@@ -16,5 +16,5 @@ class Storage(pp.Entity):
         ]
     
     def add_heart_slot(self):
-        heart_slot = Generator(ActivitiesTypes.STORAGE, size=(42,17), pos=(19,130), food_type=FoodTypes.HEART)
+        heart_slot = Generator(ActivitiesTypes.STORAGE, size=(42,17), pos=(19,128), food_type=FoodTypes.HEART)
         self.slots.insert(0, heart_slot)
