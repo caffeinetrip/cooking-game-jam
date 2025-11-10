@@ -26,15 +26,14 @@ class Game(pp.PygpenGame):
             input_path='data/config/key_mappings_default.json',
             fps_cap=60,
             opengl=True,
-            frag_path='data/shaders/main.frag',
+            frag_path='data/shaders/integrated_main.frag',
         )
         
         self.display = pygame.Surface(base_resolution, pygame.SRCALPHA)
-        
         self.hud_surf = self.display.copy()
+        self.ui_surf = self.display.copy()
         
         self.state = State()
-        
         self.npc_placemant = NPCPlacement()
         
         self.e['Assets'].load_folder('data/images/misc', colorkey=(0, 0, 0), alpha=True)
@@ -45,6 +44,10 @@ class Game(pp.PygpenGame):
         
         self.e['Renderer'].set_groups(['default', 'ui'])
         self.e['Window'].background_img = pygame.image.load('data/images/background/background.png')
+        
+        self.background_tex = self.e['MGL'].pg2tx(self.e['Window'].background_img)
+        self.background_tex.repeat_x = False
+        self.background_tex.repeat_y = False
         
         self.mpos = (0, 0)
         self.freeze_stack = []
@@ -88,9 +91,8 @@ class Game(pp.PygpenGame):
     def update(self):
         self.hud_surf.fill((0, 0, 0, 0))
         self.display.blit(self.e['Window'].background_img)
+        self.ui_surf.fill((0, 0, 0, 0))
         
-        print(self.e['EntityGroups'].groups)
-
         self.e['Sounds'].update()
         dt_scale = 1
         self.e['Window'].dt = min(self.e['Window'].dt * dt_scale, 0.1)
@@ -116,32 +118,36 @@ class Game(pp.PygpenGame):
         
         if self.e['State'].act == -1:
             if self.e['Input'].pressed('left_click') or self.e['Input'].pressed('test'):
-                self.e['Transition'].transition(lambda: (
-                    self.e['State'].__setattr__('act', 0),
-                    self.e['DialogueSystem'].start_dialogue('intro')
-                ))
+                if self.e['HUD'].intro_finished:
+                    self.e['Transition'].transition(lambda: (
+                        self.e['State'].__setattr__('act', 0),
+                        self.e['DialogueSystem'].start_dialogue('intro')
+                    ))
         
-        if not self.e['State'].gameplay_stop and self.e['State'].act >= 0:
-            self.npc_placemant.update(self.e['Window'].dt, self.hud_surf)
+        if isinstance(self.e['State'].act, int):
+            if not self.e['State'].gameplay_stop and self.e['State'].act >= 0:
+                self.npc_placemant.update(self.e['Window'].dt, self.hud_surf)
         
         self.camera.update()
         self.state.update(self.e['Window'].dt)
                 
-        self.hud.render(self.hud_surf)
+        self.hud.render(self.hud_surf, self.ui_surf)
         
         self.e['DialogueSystem'].update(self.e['Window'].dt)
         self.e['DialogueSystem'].render(self.hud_surf)
         
-        if not self.e['State'].gameplay_stop and self.e['State'].act >= 0:
-            self.plate_place.update()
-            self.bar_couter.update()
-            self.slime.update()
-            self.desk.update(self.mpos)
-            self.grill.update(self.e['Window'].dt)
+        if isinstance(self.e['State'].act, int):
+            if not self.e['State'].gameplay_stop and self.e['State'].act >= 0:
+                self.plate_place.update()
+                self.bar_couter.update()
+                self.slime.update()
+                self.desk.update(self.mpos)
+                self.grill.update(self.e['Window'].dt)
         
-        if self.e['State'].act >= 0:
-            for act in self.storage.slots + self.slime.slots + self.grill.slots + self.desk.slots + self.plate_place.slots + self.plates.slots + self.bar_couter.slots:
-                act.update(self.mpos, self.e['Window'].dt)
+        if isinstance(self.e['State'].act, int):
+            if self.e['State'].act >= 0:
+                for act in self.storage.slots + self.slime.slots + self.grill.slots + self.desk.slots + self.plate_place.slots + self.plates.slots + self.bar_couter.slots:
+                    act.update(self.mpos, self.e['Window'].dt)
 
         self.e['EntityGroups'].renderz(offset=self.camera)
         
@@ -156,11 +162,13 @@ class Game(pp.PygpenGame):
         self.transition.update()
         self.transition.render()
 
-        self.e['Renderer'].cycle({'default': self.display, 'ui': self.hud_surf})
+        self.e['Renderer'].cycle({'default': self.display, 'ui': self.hud_surf, 'hud': self.ui_surf})
         
         self.e['Window'].cycle({
             'surface': self.display,
             'hud_surf': self.hud_surf,
+            'background_tex': self.background_tex,
+            'ui_surf': self.ui_surf,
             'time': self.e['Window'].runtime,
             'scroll': self.camera.int_pos,
             'border_discard': self.e['Window'].border_discard,

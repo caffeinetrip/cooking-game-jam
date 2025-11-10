@@ -4,27 +4,24 @@ from scripts.food.food import Food, FoodTypes
 
 class Grill(pp.Entity):
     def __init__(self):
-        super().__init__(type=ActivitiesTypes.GRILL.value, pos=(200, 150), z=2)
-        
+        super().__init__(type=ActivitiesTypes.GRILL.value, pos=(200, 148), z=2)
         self.slots = [
-            Holder(ActivitiesTypes.GRILL, size=(22,22), pos=(205,155)),
-            Holder(ActivitiesTypes.GRILL, size=(22,22), pos=(233,155)),
-            Holder(ActivitiesTypes.GRILL, size=(22,22), pos=(205,183)),
-            Holder(ActivitiesTypes.GRILL, size=(22,22), pos=(233,183)),
+            Holder(ActivitiesTypes.GRILL, size=(22,22), pos=(205,153)),
+            Holder(ActivitiesTypes.GRILL, size=(22,22), pos=(233,153)),
+            Holder(ActivitiesTypes.GRILL, size=(22,22), pos=(205,181)),
+            Holder(ActivitiesTypes.GRILL, size=(22,22), pos=(233,181)),
         ]
-        
         for slot in self.slots:
             slot.fry_timer = 0.0
-
+    
     def update(self, dt):
+        cook_time = 3.0 / self.e['State'].cooking_speed_multiplier
         for slot in self.slots:
             if len(slot.item) == 1:
                 food = slot.item[0]
                 if food.food_type != FoodTypes.PLATE:
                     slot.fry_timer += dt
-                    
-                    if slot.fry_timer >= 3.0:
-                        
+                    if slot.fry_timer >= cook_time:
                         fry_map = {
                             FoodTypes.HEART: FoodTypes.FRIED_HEART,
                             FoodTypes.GREEN_HEART: FoodTypes.FRIED_GREEN_HEART,
@@ -39,18 +36,13 @@ class Grill(pp.Entity):
                             FoodTypes.GREEN_BRAIN: FoodTypes.FRIED_GREEN_BRAIN,
                             FoodTypes.CUT_BRAIN: FoodTypes.FRIED_CUT_BRAIN,
                         }
-                        
                         if food.food_type in fry_map:
                             new_type = fry_map[food.food_type]
-                            
                             temp_data = [food.pos, food.z]
-                            
                             food.reset(new_type.value, temp_data[0], temp_data[1])
                             food.food_type = new_type
-                                
                             slot.fry_timer = 0.0
                 else:
                     slot.fry_timer = 0.0
-                    
             else:
                 slot.fry_timer = 0.0

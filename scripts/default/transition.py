@@ -59,14 +59,14 @@ class Transition(pp.ElementSingleton):
 
     def render(self):
         if self.level_end:
-            self.e['Renderer'].renderf(pygame.draw.circle, (38, 27, 46), (self.e['Game'].player.center[0] - self.e['Game'].camera[0], self.e['Game'].player.center[1] - self.e['Game'].camera[1]), self.floor_hole_radius, group='default', z=self.e['Game'].player.z - 0.01)
+            self.e['Renderer'].renderf(pygame.draw.circle, (20, 0, 0), (self.e['Game'].player.center[0] - self.e['Game'].camera[0], self.e['Game'].player.center[1] - self.e['Game'].camera[1]), self.floor_hole_radius, group='default', z=self.e['Game'].player.z - 0.01)
 
         if self.progress:
             if self.inverted:
-                self.e['Renderer'].renderf(pygame.draw.circle, (38, 27, 46), (self.e['Game'].display.get_width() // 2, self.e['Game'].display.get_height() // 2), self.diag / 2 * self.progress, group='ui', z=10010)
+                self.e['Renderer'].renderf(pygame.draw.circle, (20, 0, 0), (self.e['Game'].display.get_width() // 2, self.e['Game'].display.get_height() // 2), self.diag / 2 * self.progress, group='ui', z=10010)
             else:
                 surf = pygame.Surface(self.e['Game'].display.get_size())
-                surf.fill((38, 27, 46))
+                surf.fill((20, 0, 0))
                 pygame.draw.circle(surf, (0, 0, 0), (self.e['Game'].display.get_width() // 2, self.e['Game'].display.get_height() // 2), self.diag / 2 * (1 - self.progress))
                 surf.set_colorkey((0, 0, 0))
                 self.e['Renderer'].blit(surf, (0, 0), group='ui', z=10010)

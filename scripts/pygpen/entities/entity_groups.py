@@ -88,6 +88,10 @@ class EntityGroups(ElementSingleton):
                 self.render(surf, group=group, offset=offset)
     
     def renderz(self, group=None, render_group='default', offset=(0, 0)):
+        
+        if group == 'food':
+            render_group = 'ui'
+        
         if group:
             if group in self.groups:
                 for entity in self.groups[group]:

@@ -2,7 +2,7 @@ import math
 import random
 import pygame
 import scripts.pygpen as pp
-from scripts.default.const import DEFAULT_SAVE
+from scripts.default.const import DEFAULT_SAVE, BUFFS
 
 EFFECTS = {
     'todo': 0
@@ -22,7 +22,7 @@ class State(pp.ElementSingleton):
         self.hour = 0
         self.minute = 0
         self.points = 0
-        self.time_speed = 100
+        self.time_speed = 500
         self.scene = ""
         self.gameplay_stop = False
         self.show_hud = True
@@ -36,9 +36,48 @@ class State(pp.ElementSingleton):
         self.intro_timer = 0.0
         self.disclaimer_shown = False
         self.last_act_change_week = 0
+
+        self.selected_buffs = []
+        self.available_gameplay_buffs = [b for b in BUFFS if b['type'] == 'gameplay']
+        self.available_lore_buffs = [b for b in BUFFS if b['type'] == 'lore']
+
+        self.cooking_speed_multiplier = 1.0
+        self.damage_bonus = 0
+        self.fried_damage_multiplier = 1.0
+        self.extra_wait_time = 0
+        self.bonus_points_active = False
+
+        self.week_end_pending = False
+        self.week_end_timer = 0.0
+
+        self.has_knife = False
+        self.has_heart = False
+        self.heart_unlock_pending = True
+        self.npc_spawn_pause_timer = 0.0
+
+        self.game_over = False
+
+        self.grandmother_order_completed = {0: False, 1: False, 2: False}
+
         
     def get_time_str(self):
         return f"0{self.dayt}day/07"
+    
+    def apply_buff(self, buff_id):
+        if buff_id == 'speed_cooking':
+            self.cooking_speed_multiplier = 1.5
+        elif buff_id == 'extra_damage':
+            self.damage_bonus += 5
+        elif buff_id == 'bonus_points':
+            self.bonus_points_active = True
+        elif buff_id == 'fried_bonus':
+            self.fried_damage_multiplier = 1.2
+        elif buff_id == 'extra_heart':
+            self.health += 1
+        elif buff_id == 'extra_second':
+            self.extra_wait_time += 1
+        elif buff_id == 'time_slow':
+            self.time_speed = 100
     
     def save(self):
         save_data = {
@@ -52,8 +91,24 @@ class State(pp.ElementSingleton):
     def reset(self):
         pass
     
+    def check_all_npcs_dead(self):
+        if 'npc' not in self.e['EntityGroups'].groups:
+            return True
+        npcs = self.e['EntityGroups'].groups['npc']
+        if len(npcs) == 0:
+            return True
+        for npc in npcs:
+            if hasattr(npc, 'alive') and npc.alive:
+                return False
+        return True
+    
     def update(self, dt):
-        print(self.act)
+        if self.health <= 0 and not self.game_over:
+            self.game_over = True
+            self.gameplay_stop = True
+            self.show_hud = False
+            return
+            
         if self.act == -2:
             self.intro_timer += dt
             if self.intro_timer >= 1.5:
@@ -71,6 +126,75 @@ class State(pp.ElementSingleton):
                 food.kill()
                 
             self.act_complete = False
+        
+        if self.npc_spawn_pause_timer > 0:
+            self.npc_spawn_pause_timer -= dt
+            if self.npc_spawn_pause_timer <= 0:
+                self.e['NPCPlacement'].stop_spawning = False
+    
+        
+        if self.heart_unlock_pending:
+            if isinstance(self.act, int) and self.act >= 3:
+                if self.week == 2 and self.dayt == 4:
+                    if self.check_all_npcs_dead():
+                        self.heart_unlock_pending = False
+                        self.e['NPCPlacement'].stop_spawning = True
+                        self.npc_spawn_pause_timer = 2.0
+                        
+                        self.e['Transition'].transition(lambda: (
+                            self.e['DialogueSystem'].start_dialogue('yuki_heart'),
+                            self.e['State'].__setattr__('has_heart', True),
+                            self.e['Game'].storage.add_heart_slot()
+                        ))
+        
+        if self.week_end_pending:
+            self.week_end_timer += dt
+            if self.week_end_timer >= 0.5:
+                if self.check_all_npcs_dead():
+                    self.week_end_pending = False
+                    self.week_end_timer = 0.0
+                    self.e['NPCPlacement'].stop_spawning = True
+                    
+                    if self.act == 3:
+                        self.e['Transition'].transition(lambda: (
+                            self.e['State'].__setattr__('act', 4),
+                            self.e['State'].__setattr__('show_buff_selection', True),
+                            self.e['State'].__setattr__('gameplay_stop', True),
+                            self.e['NPCPlacement'].reset_all_npcs(),
+                            
+                        ))
+
+                        
+                    elif self.act == 5:
+                        self.e['Transition'].transition(lambda: (
+                            self.e['State'].__setattr__('act', 6),
+                            self.e['State'].__setattr__('show_buff_selection', True),
+                            self.e['State'].__setattr__('gameplay_stop', True),
+                            self.e['NPCPlacement'].reset_all_npcs()
+                        ))
+                    elif self.act == 6:
+                        self.e['Transition'].transition(lambda: (
+                            self.e['DialogueSystem'].start_dialogue('act7'),
+                            self.e['State'].__setattr__('act', 7),
+                            self.e['NPCPlacement'].reset_all_npcs()
+                        ))
+                    elif self.act == 8:
+                        self.e['Transition'].transition(lambda: (
+                            self.e['State'].__setattr__('act', 9),
+                            self.e['State'].__setattr__('show_buff_selection', True),
+                            self.e['State'].__setattr__('gameplay_stop', True),
+                            self.e['NPCPlacement'].reset_all_npcs()
+                        ))
+                    elif self.act == 9:
+                        self.e['Transition'].transition(lambda: (
+                            self.e['DialogueSystem'].start_dialogue('act10'),
+                            self.e['State'].__setattr__('act', 10),
+                            self.e['NPCPlacement'].reset_all_npcs()
+                        ))
+                    
+                    for food in self.e['EntityGroups'].groups['food']:
+                        food.kill()
+                    self.e['Game'].load_activities()
                 
         if self.playable and not self.gameplay_stop:
             self.time += dt * self.time_speed
@@ -93,51 +217,9 @@ class State(pp.ElementSingleton):
                                 self.dayt = 1
                                 self.week += 1
                                 
-                                if self.act >= 3 and self.act not in [4, 7, 10]:
-                                    if self.week > self.last_act_change_week:
-                                        self.last_act_change_week = self.week
-                                        
-                                        if self.act == 3:
-                                            self.act = 4
-                                            self.show_buff_selection = True
-                                            
-                                            for food in self.e['EntityGroups'].groups['food']:
-                                                food.kill()
-
-                                            self.e['Game'].load_activities()
-                                            self.e['NPCPlacement'].reset_all_npcs()
-                                            
-                                        elif self.act == 5:
-                                            self.act = 6
-                                            self.show_buff_selection = True
-                                            
-                                        elif self.act == 6:
-                                            self.act = 7
-                                            self.show_buff_selection = True
-                                            
-                                            for food in self.e['EntityGroups'].groups['food']:
-                                                food.kill()
-
-                                            self.e['Game'].load_activities()
-                                            self.e['NPCPlacement'].reset_all_npcs()
-                                            
-                                        elif self.act == 8:
-                                            self.act = 9
-                                            self.show_buff_selection = True
-                                            
-                                            for food in self.e['EntityGroups'].groups['food']:
-                                                food.kill()
-
-                                            self.e['Game'].load_activities()
-                                            self.e['NPCPlacement'].reset_all_npcs()
-                                            
-                                        elif self.act == 9:
-                                            self.act = 10
-                                            self.show_buff_selection = True
-                                            
-                                            for food in self.e['EntityGroups'].groups['food']:
-                                                food.kill()
-
-                                            self.e['Game'].load_activities()
-                                            self.e['NPCPlacement'].reset_all_npcs()
-                                            
+                                if isinstance(self.act, int):
+                                    if self.act >= 3 and self.act not in [4, 7, 10]:
+                                        if self.week > self.last_act_change_week:
+                                            self.last_act_change_week = self.week
+                                            self.week_end_pending = True
+                                            self.e['NPCPlacement'].stop_spawning = True

@@ -197,19 +197,48 @@ class Holder(pp.Element):
                             break
                     
         else:
+
             for acts in [self.e['Game'].desk.slots, self.e['Game'].grill.slots, self.e['Game'].slime.slots]:
                 for slot in acts:
                     if slot.rect.collidepoint(mpos):
                         if len(slot.item) == 0:
                             target = slot
                             break
-            
+                if target:
+                    break
+
             if not target:
-                for slot in self.e['Game'].plate_place.slots:
-                    if slot.rect.collidepoint(mpos):
-                        if len(slot.item) == 1 and slot.item[0].food_type == FoodTypes.PLATE:
+
+                desk_hitbox = pygame.Rect(135, 148, 60, 80)
+                if desk_hitbox.collidepoint(mpos):
+                    for slot in self.e['Game'].desk.slots:
+                        if len(slot.item) == 0:
                             target = slot
                             break
+                
+                if not target:
+                    grill_hitbox = pygame.Rect(200, 148, 60, 80)
+                    if grill_hitbox.collidepoint(mpos):
+                        for slot in self.e['Game'].grill.slots:
+                            if len(slot.item) == 0:
+                                target = slot
+                                break
+                
+                if not target:
+                    slime_hitbox = pygame.Rect(70, 148, 60, 80)
+                    if slime_hitbox.collidepoint(mpos):
+                        for slot in self.e['Game'].slime.slots:
+                            if len(slot.item) == 0:
+                                target = slot
+                                break
+                
+                if not target:
+                    plate_place_hitbox = pygame.Rect(265, 150, 60, 80)
+                    if plate_place_hitbox.collidepoint(mpos):
+                        for slot in self.e['Game'].plate_place.slots:
+                            if len(slot.item) == 1 and slot.item[0].food_type == FoodTypes.PLATE:
+                                target = slot
+                                break
         
         if not target or (target.activity_type == ActivitiesTypes.BAR_COUTER and not self.e['NPCPlacement'].chek(target.index)):
             if self.last_holder:
@@ -359,13 +388,15 @@ class Generator(Holder):
                         break
 
         if target:
-            self.e['EntityGroups'].groups['food'].pop()
+            if self.e['EntityGroups'].groups['food'] != []:
+                self.e['EntityGroups'].groups['food'].pop()
             if is_food and target.activity_type == ActivitiesTypes.PLATE_PLACE:
                 target.get_food_on_plate(self.give_item())
             else:
                 target.get_item(self.give_item())
         else:
-            self.e['EntityGroups'].groups['food'].pop()
+            if self.e['EntityGroups'].groups['food'] != []:
+                self.e['EntityGroups'].groups['food'].pop()
         
         self.item = []
 
